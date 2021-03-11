@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
 <link href="coqdoc.css" rel="stylesheet" type="text/css" />
-<title>coq_proof_sem_eq_de_op</title>
+<title>coq_proof_semantics_equivalence</title>
 </head>
 
 <body>
@@ -20,7 +20,7 @@
 </div>
 
 <div class="doc">
-<a id="lab1"></a><h1 class="section">Coq Proof for denotational and operational semantics equivalence on a formal interaction language for modelling distributed systems</h1>
+<a id="lab1"></a><h1 class="section">Coq Proof for the equivalence of three semantics defined on a formal language for modelling distributed systems</h1>
 
 Erwan Mahe - 2021
 
@@ -37,7 +37,13 @@ We use Coq to:
 <li> define another formal semantics, this time in operational style
 
 </li>
-<li> prove the equivalence of those two semantics
+<li> prove the equivalence between the denotational and operational semantics
+
+</li>
+<li> propose an algorithmization of the operational semantics that we call the execution semantics
+
+</li>
+<li> prove the equivalence between the execution and the operational semantics and therefore also w.r.t. the denotational semantics
 
 </li>
 </ul>
@@ -45,6 +51,52 @@ We use Coq to:
 <div class="paragraph"> </div>
 
 This proof accompanies the manuscript of my thesis
+
+<div class="paragraph"> </div>
+
+<a id="lab2"></a><h2 class="section">Context</h2>
+
+
+<div class="paragraph"> </div>
+
+The formal language that we consider is that of interactions.
+Interactions can be described as a formalisation of graphical models such as Message Sequence Charts or UML Sequence Diagrams.
+
+<div class="paragraph"> </div>
+
+An interaction describes the behaviors that can be expressed by a distributed system.
+Those behaviors take the form of sequences of obserable events (discrete events), that we call traces (traces of execution).
+In a more practical setting, a trace can for instance correspond to a log file,
+in which the occurence of some discrete events have been recorded progressively during an execution of the system.
+
+<div class="paragraph"> </div>
+
+The events that constitute traces are atomic communication actions that occur on the interfaces of the distributed
+system's sub-systems.
+Those atomic actions correspond to either the emission or the reception of
+a given message on a given sub-system.
+
+<div class="paragraph"> </div>
+
+The semantic domain of interest is therefore that of traces. The semantics of a given interaction is a given set of traces.
+In the following, we will propose three different manners to define the semantics of interactions, and we will prove the equivalence
+of those definitions. Those three definitions correspond to:
+<ul class="doclist">
+<li> a <i>denotational-style</i> semantics, which consists in constructing sets of accepted traces by <i>composition</i> and using algebraic properties of some operators on sets of traces
+
+</li>
+<li> an <i>operational-style</i> semantics, which consists in considering how can an interaction model be executed dynamically, and which behaviors it thus expresses. For a given interaction "i", it may be possible to transform it into interaction "i'" through the expression of an action. By considering all those possible transformations, we can construct the semantics of interaction "i" using <i>recursion</i> on the semantics of those transformed "i'" interactions.
+
+</li>
+<li> an <i>execution</i> semantics, which is an algorithmization of the <i>operational-style</i> semantics that consists in separating the process described by the operational semantics into two parts. At first we identify which actions can be immediately executed in a given interaction. And then, we construct the interaction term that remains to be executed.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a id="lab3"></a><h2 class="section">Related works</h2>
+
 
 <div class="paragraph"> </div>
 
@@ -57,7 +109,7 @@ The coq file itself is hosted on the following repository:
 
 <div class="paragraph"> </div>
 
-A prototype tool, which implements some model-based-testing features using the operational-style semantics
+A prototype tool, which implements some formal verification techniques using the execution semantics
 is available on the following repository:
 <ul class="doclist">
 <li> <a href="https://github.com/erwanM974/hibou_label">https://github.com/erwanM974/hibou_label</a> 
@@ -67,7 +119,11 @@ is available on the following repository:
 
 <div class="paragraph"> </div>
 
-Another Coq proof, that is interested in the handling of sets of locally observed traces (multi-traces)
+The nature of distributed systems makes so that it is often impossible to reorder globally the events that occured on distrinct sub-systems during an execution
+of the system. Let us remark that this is related to the absence of a global clock.
+In any case, what can be concretely logged during the execution of a distributed system is most oftentimes rather a set of locally defined log files.
+In the semantic domain, this translates into having sets of locally observed traces, which we call multi-traces.
+Another Coq proof, that is interested in the handling of multi-traces
 and how one can test them w.r.t. the semantics (the Oracle problem for some form of a trace conformance relation / membership)
 is available on the following repository:
 <ul class="doclist">
@@ -78,36 +134,13 @@ is available on the following repository:
 
 <div class="paragraph"> </div>
 
-<a id="lab2"></a><h2 class="section">Context</h2>
-
-
-<div class="paragraph"> </div>
-
-This formal semantics defines which are the behaviors that are specified by an interaction model 
-(akin to Message Sequence Charts or UML Sequence Diagrams).
-Those behaviors are described by traces which are sequences of atomic actions that can be observed 
-on the interfaces of a distributed system's sub-systems.
-Those atomic actions correspond to the occurence of communication events i.e. either the emission or the reception of
-a given message on a given sub-system.
-
-<div class="paragraph"> </div>
-
-The definition of formal semantics on this interaction language is done here in two different styles:
-<ul class="doclist">
-<li> a <i>denotational-style</i>, which consists in constructing sets of accepted traces by <i>composition</i> and using algebraic properties of some operators on sets of traces
-
-</li>
-<li> an <i>operational-style</i>, which consists in considering which actions can be immediately executed in a given interaction, constructing the interaction term that remains to be executed via term rewriting, and constructing the semantics using <i>recursion</i> on the semantics of those remaining interactions
-
-</li>
-</ul>
-
-<div class="paragraph"> </div>
-
-<a id="lab3"></a><h2 class="section">Dependencies</h2>
+<a id="lab4"></a><h2 class="section">Dependencies</h2>
 
 Below are listed the libraries required for this Coq proof.
 <ul class="doclist">
+<li> "Coq.Bool.Bool." provides utilities related to the manipulation of booleans
+
+</li>
 <li> "Coq.Lists.List." provides utilities on lists. I use lists - among other things - to represent traces.
 
 </li>
@@ -132,6 +165,7 @@ Below are listed the libraries required for this Coq proof.
 <div class="code">
 
 <br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Bool.Bool</span>.<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Lists.List</span>.<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="var">Coq.Vectors.Fin</span>.<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Psatz</span>.<br/>
@@ -145,7 +179,7 @@ Below are listed the libraries required for this Coq proof.
 </div>
 
 <div class="doc">
-<a id="lab4"></a><h1 class="section">Preliminaries</h1>
+<a id="lab5"></a><h1 class="section">Preliminaries</h1>
 
 
 <div class="paragraph"> </div>
@@ -154,7 +188,7 @@ This section is dedicated to enoncing some basic types and properties on which t
 
 <div class="paragraph"> </div>
 
-<a id="lab5"></a><h2 class="section">Basic Properties</h2>
+<a id="lab6"></a><h2 class="section">Basic Properties</h2>
 
 
 <div class="paragraph"> </div>
@@ -238,7 +272,7 @@ Let us start by stating some basic properties on integers and lists that will be
 </div>
 
 <div class="doc">
-<a id="lab6"></a><h2 class="section">Substitutions and eliminations of elements in lists</h2>
+<a id="lab7"></a><h2 class="section">Substitutions and eliminations of elements in lists</h2>
 
 
 <div class="paragraph"> </div>
@@ -344,7 +378,7 @@ resulting from the removal of another element, then this "x" element must also b
 
 <div class="paragraph"> </div>
 
-<a id="lab7"></a><h2 class="section">Signature &amp; Actions</h2>
+<a id="lab8"></a><h2 class="section">Signature &amp; Actions</h2>
 
 
 <div class="paragraph"> </div>
@@ -379,7 +413,57 @@ to model those sets.
 </div>
 
 <div class="doc">
-To distinguish between emissions "a!m" and receptions "b?m" I encode the kind of action ({!,?}) with an inductive type "ActKind".
+Given that we will manipulate elements of "L" (lifelines)
+for the proofs regarding the execution semantics,
+we formulate the following three basic properties:
+<ul class="doclist">
+<li> "L_neqb", which states that the inequality "l &lt;&gt; l'" (as a proposition) is equivalent to the fact that the boolean "Fin.eqb l l'" is false
+
+</li>
+<li> "L_not_neq", which states that if a lifeline "l" is not different from a lifeline "l'" then "l=l'"
+
+</li>
+<li> "L_neq_or_not_neq", which is a Lemma on the decidability of the unequality of lifelines
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_neqb</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">l</span> <span class="id" title="var">l'</span>:<span class="id" title="var">L</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">l</span> &lt;&gt; <span class="id" title="var">l'</span>) &lt;-&gt; (<span class="id" title="var">Fin.eqb</span> <span class="id" title="var">l</span> <span class="id" title="var">l'</span> = <span class="id" title="var">false</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="var">Admitted</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_not_neq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">l</span> <span class="id" title="var">l'</span>:<span class="id" title="var">L</span>),  <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;(~ (<span class="id" title="var">l</span> &lt;&gt; <span class="id" title="var">l'</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">l</span> = <span class="id" title="var">l'</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="var">Admitted</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">L_neq_or_not_neq</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<span class="id" title="var">L</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">x</span> &lt;&gt; <span class="id" title="var">y</span>) \/ (<span class="id" title="var">not</span>(<span class="id" title="var">x</span>&lt;&gt;<span class="id" title="var">y</span>)).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">Fin.eq_dec</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
+<span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+- <span class="id" title="tactic">right</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We denote by "l!m" the emission of message "m" (element of "M") from lifeline "l" (element of "L").
+We denote by "l?m" the reception of message "m" (element of "M") by lifeline "l" (element of "L").
+To distinguish between emissions and receptions I encode the kind of action
+({!,?}) with an inductive type "ActKind".
 
 </div>
 <div class="code">
@@ -419,7 +503,7 @@ A utility function "lifeline" returns, for any action, the lifeline on which it 
 </div>
 
 <div class="doc">
-<a id="lab8"></a><h1 class="section">Trace Language (Semantic Domain)</h1>
+<a id="lab9"></a><h1 class="section">Trace Language (Semantic Domain)</h1>
 
 
 <div class="paragraph"> </div>
@@ -463,7 +547,7 @@ are aliased and specialised for use in lists of traces as "subs_replace" and "su
 </div>
 
 <div class="doc">
-<a id="lab9"></a><h2 class="section">Some consideration on the decidability of equalities</h2>
+<a id="lab10"></a><h2 class="section">Some consideration on the decidability of equalities</h2>
 
 
 <div class="paragraph"> </div>
@@ -563,28 +647,7 @@ This last proof relies on a custom induction principle defined and checked in th
 </div>
 
 <div class="doc">
-As a side note, let us also remark the "not_eq_or_not_not_eq" Lemma on the decidability
-of the unequality of lifelines, which will be usefull later. 
-To prove it I use the "eq_dec" Lemma from "Coq.Vectors.Fin.".
-
-</div>
-<div class="code">
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">not_eq_or_not_not_eq</span> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>:<span class="id" title="var">L</span>) :<br/>
-&nbsp;&nbsp;(<span class="id" title="var">x</span> &lt;&gt; <span class="id" title="var">y</span>) \/ (<span class="id" title="var">not</span>(<span class="id" title="var">x</span>&lt;&gt;<span class="id" title="var">y</span>)).<br/>
-<span class="id" title="keyword">Proof</span>.<br/>
-<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">Fin.eq_dec</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span>).<br/>
-<span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
-- <span class="id" title="tactic">right</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="var">contradiction</span>.<br/>
-- <span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
-<span class="id" title="keyword">Qed</span>.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-<a id="lab10"></a><h2 class="section">Some operators on traces and some of their algebraic properties</h2>
+<a id="lab11"></a><h2 class="section">Some operators on traces and some of their algebraic properties</h2>
 
 
 <div class="paragraph"> </div>
@@ -678,7 +741,7 @@ and some of their properties stated and proven.
 
 <div class="paragraph"> </div>
 
-<a id="lab11"></a><h3 class="section">Concatenation</h3>
+<a id="lab12"></a><h3 class="section">Concatenation</h3>
 
 
 <div class="paragraph"> </div>
@@ -745,7 +808,7 @@ We only define the following two properties:
 </div>
 
 <div class="doc">
-<a id="lab12"></a><h3 class="section">Interleaving</h3>
+<a id="lab13"></a><h3 class="section">Interleaving</h3>
 
 
 <div class="paragraph"> </div>
@@ -939,7 +1002,7 @@ Interesting properties of the "is_interleaving" that will be useful later on inc
 </div>
 
 <div class="doc">
-<a id="lab13"></a><h3 class="section">Weak Sequencing</h3>
+<a id="lab14"></a><h3 class="section">Weak Sequencing</h3>
 
 
 <div class="paragraph"> </div>
@@ -1177,7 +1240,7 @@ In a similar fashion to what I did for the interleaving operator, I state and pr
 </div>
 
 <div class="doc">
-<a id="lab14"></a><h3 class="section">Remark on the notion of scheduling</h3>
+<a id="lab15"></a><h3 class="section">Remark on the notion of scheduling</h3>
 
 
 <div class="paragraph"> </div>
@@ -1204,9 +1267,6 @@ events from traces t1 and t2 in the construction of a merged trace t
 
 I encode this notion of a type of scheduling into the inductive type "ScheduleKind" defined below.
 
-<div class="paragraph"> </div>
-
-
 </div>
 <div class="code">
 
@@ -1220,7 +1280,7 @@ I encode this notion of a type of scheduling into the inductive type "ScheduleKi
 </div>
 
 <div class="doc">
-<a id="lab15"></a><h3 class="section">Merge operator</h3>
+<a id="lab16"></a><h3 class="section">Merge operator</h3>
 
 
 <div class="paragraph"> </div>
@@ -1468,7 +1528,7 @@ one can define an prove some properties for the merge operator:
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">n_merge_schedule_nonil_prop0</span> (<span class="id" title="var">lk</span>:<span class="id" title="var">ScheduleKind</span>) (<span class="id" title="var">subs</span>:<span class="id" title="var">list</span> <span class="id" title="var">Trace</span>) (<span class="id" title="var">t</span>:<span class="id" title="var">Trace</span>) :<br/>
 &nbsp;&nbsp;(<span class="id" title="var">n_merge_schedule</span> <span class="id" title="var">lk</span> <span class="id" title="var">subs</span> <span class="id" title="var">t</span>)<br/>
-&nbsp;&nbsp;-&gt;(<span class="id" title="keyword">forall</span> <span class="id" title="var">t0</span> : <span class="id" title="var">Trace</span>, <span class="id" title="var">In</span> <span class="id" title="var">t0</span> <span class="id" title="var">subs</span> -&gt; <span class="id" title="var">t0</span>&lt;&gt;<span class="id" title="var">nil</span>).<br/>
+&nbsp;&nbsp;-&gt; (<span class="id" title="keyword">forall</span> <span class="id" title="var">t0</span> : <span class="id" title="var">Trace</span>, <span class="id" title="var">In</span> <span class="id" title="var">t0</span> <span class="id" title="var">subs</span> -&gt; <span class="id" title="var">t0</span>&lt;&gt;<span class="id" title="var">nil</span>).<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 <span class="id" title="tactic">intros</span>.<br/>
 <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">H</span>.<br/>
@@ -1528,7 +1588,7 @@ to lists of traces:
 </div>
 
 <div class="doc">
-<a id="lab16"></a><h3 class="section">Some considerations on the distributivity of "no_conflict" w.r.t. the previous operators</h3>
+<a id="lab17"></a><h3 class="section">Some considerations on the distributivity of "no_conflict" w.r.t. the previous operators</h3>
 
 
 <div class="paragraph"> </div>
@@ -1754,7 +1814,7 @@ In the following we demonstrate the distributive composition of the "no_conflict
 </div>
 
 <div class="doc">
-<a id="lab17"></a><h1 class="section">An Interaction Language and its semantics</h1>
+<a id="lab18"></a><h1 class="section">An Interaction Language and its semantics</h1>
 
 
 <div class="paragraph"> </div>
@@ -1789,7 +1849,7 @@ The proof will be introduced in two steps:
 
 <div class="paragraph"> </div>
 
-<a id="lab18"></a><h2 class="section">Syntax</h2>
+<a id="lab19"></a><h2 class="section">Syntax</h2>
 
 
 <div class="paragraph"> </div>
@@ -1853,7 +1913,7 @@ Let us describe the Coq definition, which includes 7 rules for the construction 
 </div>
 
 <div class="doc">
-<a id="lab19"></a><h2 class="section">Denotational Semantics</h2>
+<a id="lab20"></a><h2 class="section">Denotational Semantics</h2>
 
 
 <div class="paragraph"> </div>
@@ -1899,7 +1959,7 @@ In other words, this (sem_de i t) predicate states the membership of trace t int
 </div>
 
 <div class="doc">
-<a id="lab20"></a><h3 class="section">Some properties of "sem_de" w.r.t. loops</h3>
+<a id="lab21"></a><h3 class="section">Some properties of "sem_de" w.r.t. loops</h3>
 
 
 <div class="paragraph"> </div>
@@ -2009,7 +2069,7 @@ Those three properties are stated and proven in the three Lemmas below:
 </div>
 
 <div class="doc">
-<a id="lab21"></a><h2 class="section">Operational Semantics</h2>
+<a id="lab22"></a><h2 class="section">Operational Semantics</h2>
 
 
 <div class="paragraph"> </div>
@@ -2025,7 +2085,7 @@ into the denotational-style semantics.
 
 <div class="paragraph"> </div>
 
-<a id="lab22"></a><h3 class="section">Static analysis of interaction terms</h3>
+<a id="lab23"></a><h3 class="section">Static analysis of interaction terms</h3>
 
 
 <div class="paragraph"> </div>
@@ -2036,7 +2096,7 @@ analysis of the term structure of the interaction.
 
 <div class="paragraph"> </div>
 
-<a id="lab23"></a><h4 class="section">The "terminates" function</h4>
+<a id="lab24"></a><h4 class="section">The "terminates" function</h4>
 
 
 <div class="paragraph"> </div>
@@ -2199,7 +2259,7 @@ Those two observations are stated and proved in the following Lemmas:
 </div>
 
 <div class="doc">
-<a id="lab24"></a><h4 class="section">The "avoids" function</h4>
+<a id="lab25"></a><h4 class="section">The "avoids" function</h4>
 
 
 <div class="paragraph"> </div>
@@ -2274,7 +2334,7 @@ Let us now state and prove some properties on "avoids":
 <span class="id" title="keyword">Proof</span>.<br/>
 <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span> ; <span class="id" title="tactic">simpl</span>.<br/>
 - <span class="id" title="tactic">left</span>. <span class="id" title="tactic">trivial</span>.<br/>
-- <span class="id" title="tactic">apply</span> <span class="id" title="var">not_eq_or_not_not_eq</span>.<br/>
+- <span class="id" title="tactic">apply</span> <span class="id" title="var">L_neq_or_not_neq</span>.<br/>
 - <span class="id" title="tactic">specialize</span> <span class="id" title="var">IHi1</span> <span class="id" title="keyword">with</span> (<span class="id" title="var">l</span>:=<span class="id" title="var">l</span>).<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">specialize</span> <span class="id" title="var">IHi2</span> <span class="id" title="keyword">with</span> (<span class="id" title="var">l</span>:=<span class="id" title="var">l</span>).<br/>
 &nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">IHi1</span> ; <span class="id" title="tactic">destruct</span> <span class="id" title="var">IHi2</span>.<br/>
@@ -2431,7 +2491,7 @@ With regards to the denotational semantics, I make the following remarks:
 </div>
 
 <div class="doc">
-<a id="lab25"></a><h3 class="section">The pruning of interactions</h3>
+<a id="lab26"></a><h3 class="section">The pruning of interactions</h3>
 
 
 <div class="paragraph"> </div>
@@ -2460,7 +2520,7 @@ the predicate "(is_prune_of i l i')" states whether or not an interaction "i'" i
 
 <div class="paragraph"> </div>
 
-This formulation as a predicate in fact corresponds to a certain "prune" function (not defined here)
+This formulation as a predicate in fact corresponds to a certain "prune" function (that will be defined for the execution semantics)
 which can statically compute a uniquely defined "pruned" interaction.
 The existence of this "prune" function is congruent to having the "is_prune_of" predicate satisfying properties of existence and unicity.
 
@@ -2515,91 +2575,9 @@ The existence of this "prune" function is congruent to having the "is_prune_of" 
 </div>
 
 <div class="doc">
-<a id="lab26"></a><h4 class="section">Inherent properties of the pruning</h4>
+<a id="lab27"></a><h4 class="section">Inherent properties of the pruning</h4>
 
-
-<div class="paragraph"> </div>
-
-As explained earlier, we will need the unicity property for the "is_prune_of" predicate.
-This property is stated and proved in the "prune_unicity" Lemma below.
-
-<div class="paragraph"> </div>
-
-If, for any given interactions "i", "i1" and "i2" we have both (is_prune_of i l i1') and (is_prune_of i l i2'), then "i1" and "i2" are in fact the same interaction term.
-
-</div>
-<div class="code">
-
-<br/>
-<span class="id" title="keyword">Lemma</span> <span class="id" title="var">prune_unicity</span> (<span class="id" title="var">i</span> <span class="id" title="var">i1'</span> <span class="id" title="var">i2'</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">l</span>:<span class="id" title="var">L</span>):<br/>
-&nbsp;&nbsp;( (<span class="id" title="var">is_prune_of</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span> <span class="id" title="var">i1'</span>) /\ (<span class="id" title="var">is_prune_of</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span> <span class="id" title="var">i2'</span>) )<br/>
-&nbsp;&nbsp;-&gt; (<span class="id" title="var">i1'</span>=<span class="id" title="var">i2'</span>).<br/>
-<span class="id" title="keyword">Proof</span>.<br/>
-<span class="id" title="tactic">intros</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">H1</span>,<span class="id" title="var">H2</span>).<br/>
-<span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
-- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
-- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
-- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H2</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">i1'0</span> = <span class="id" title="var">i1'1</span>).<br/>
-&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi1</span> <span class="id" title="var">i1'0</span> <span class="id" title="var">i1'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H13</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">i2'0</span> = <span class="id" title="var">i2'1</span>).<br/>
-&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi2</span> <span class="id" title="var">i2'0</span> <span class="id" title="var">i2'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H13</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
-- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H2</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">i1'0</span> = <span class="id" title="var">i1'1</span>).<br/>
-&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi1</span> <span class="id" title="var">i1'0</span> <span class="id" title="var">i1'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H13</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">i2'0</span> = <span class="id" title="var">i2'1</span>).<br/>
-&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi2</span> <span class="id" title="var">i2'0</span> <span class="id" title="var">i2'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H13</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
-- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H2</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">i1'0</span> = <span class="id" title="var">i1'1</span>).<br/>
-&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi1</span> <span class="id" title="var">i1'0</span> <span class="id" title="var">i1'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H13</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">i2'0</span> = <span class="id" title="var">i2'1</span>).<br/>
-&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi2</span> <span class="id" title="var">i2'0</span> <span class="id" title="var">i2'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H13</span>.<br/>
-&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
-- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H1</span> ; <span class="id" title="tactic">inversion</span> <span class="id" title="var">H2</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="tactic">assert</span> (<span class="id" title="var">i1'0</span> = <span class="id" title="var">i1'1</span>).<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi1</span> <span class="id" title="var">i1'0</span> <span class="id" title="var">i1'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H17</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assert</span> (<span class="id" title="var">i2'0</span> = <span class="id" title="var">i2'1</span>).<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi2</span> <span class="id" title="var">i2'0</span> <span class="id" title="var">i2'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H17</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="var">contradiction</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="var">contradiction</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="var">contradiction</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="tactic">assert</span> (<span class="id" title="var">i1'</span> = <span class="id" title="var">i2'</span>).<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi1</span> <span class="id" title="var">i1'</span> <span class="id" title="var">i2'</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H15</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="var">contradiction</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="var">contradiction</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="var">contradiction</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="tactic">assert</span> (<span class="id" title="var">i1'</span> = <span class="id" title="var">i2'</span>).<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi2</span> <span class="id" title="var">i1'</span> <span class="id" title="var">i2'</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H15</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
-- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H1</span> ; <span class="id" title="tactic">inversion</span> <span class="id" title="var">H2</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="tactic">assert</span> (<span class="id" title="var">i1'0</span> = <span class="id" title="var">i1'1</span>).<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> (<span class="id" title="var">IHi</span> <span class="id" title="var">i1'0</span> <span class="id" title="var">i1'1</span> <span class="id" title="var">l</span>) ; <span class="id" title="tactic">assumption</span>. }<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H13</span>.<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="var">contradiction</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="var">contradiction</span>.<br/>
-&nbsp;&nbsp;+ <span class="id" title="tactic">reflexivity</span>.<br/>
-<span class="id" title="keyword">Qed</span>.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-I also state and prove some properties linked to the relationship between pruning and avoiding:
+I state and prove some properties linked to the relationship between pruning and avoiding:
 <ul class="doclist">
 <li> "prunable_implies_avoids" states that if an interaction can be rewritten (pruned) into a pruned version w.r.t. a lifeline "l", then it means it could avoid "l"
 
@@ -2705,7 +2683,7 @@ I also state and prove some properties linked to the relationship between prunin
 </div>
 
 <div class="doc">
-<a id="lab27"></a><h4 class="section">Properties of pruning w.r.t. the denotational semantics</h4>
+<a id="lab28"></a><h4 class="section">Properties of pruning w.r.t. the denotational semantics</h4>
 
 
 <div class="paragraph"> </div>
@@ -2879,39 +2857,28 @@ With "prune_kept_de", we have proven that the semantics of the pruned version is
 
 <div class="paragraph"> </div>
 
-We will now prove, in two steps, that the semantics of the pruned version is a minimal cut of that of the original.
+We will now prove that the semantics of the pruned version is a minimal cut of that of the original.
 What we mean to say is that the selection of the subset of the semantics that is operated by prune is minimal in so far
 as we only eliminate traces that we need to eliminate so as to satisfy that the pruned version avoids a certain lifeline.
 Traces that do not involve the lifeline w.r.t. which the pruning is done must be kept in the semantics.
 
 <div class="paragraph"> </div>
 
-This two-steps proof is done with Lemmas:
-<ul class="doclist">
-<li> "de_accept_nil_implies_pruned_de_accept_nil ", which states that if the original interaction accepts the empty trace, then the pruned version must also accept the empty trace
-
-</li>
-<li> "de_accept_cons_and_no_conflict_implies_prunable_and_keep_de", which states that if the original interaction accepts a non-empty trace that has no conflict with the lifeline against which we prune, then this trace must be found in the semantics of the pruned version.
-
-</li>
-</ul>
+This is done in the "de_accept_t_and_no_conflict_implies_pruned_de_accept_t" Lemma, which states that if a trace "t"
+that has no conflict w.r.t. a certain lifeline "l"
+is in the semantics of an interaction "i", then it is also in the semantics of the pruned version of "i" w.r.t. "l".
 
 <div class="paragraph"> </div>
 
-Those two lemmas taken together in addition to the "prune_kept_de" Lemma state that
+This Lemma, combined with "prune_kept_de" Lemma state that
 the semantics of the pruned version is exactly the subset of the semantics
 of the original in which all traces have no conflict with the lifeline against which the pruning is done.
 
 <div class="paragraph"> </div>
 
-
-<div class="paragraph"> </div>
-
-Let us make some additional remarks on the "de_accept_cons_and_no_conflict_implies_prunable_and_keep_de" Lemma.
-This Lemma is formulated with an existential quantifier stating that: there exists a certain pruned version of the
-original that accepts the trace t.
-However we have previously seen that the property of unicity is proven for the "is_prune_of" predicate.
-As a result, it is not "a pruned version" but "the pruned version".
+A first Lemma, "de_loop_accept_t_and_no_conflict_implies_nil_or_avoids", is proven so as to faciliate the proof
+of "de_accept_t_and_no_conflict_implies_pruned_de_accept_t".
+It simply consists of the particular case of loops.
 
 </div>
 <div class="code">
@@ -3078,6 +3045,16 @@ As a result, it is not "a pruned version" but "the pruned version".
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+A direct application of "de_accept_t_and_no_conflict_implies_pruned_de_accept_t", in the case where the trace "t" is the empty trace "nil"
+is formulated in Lemma "de_accept_nil_implies_pruned_de_accept_nil" below.
+
+</div>
+<div class="code">
+
+<br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">de_accept_nil_implies_pruned_de_accept_nil</span><br/>
 &nbsp;&nbsp;(<span class="id" title="var">i</span> <span class="id" title="var">i'</span>: <span class="id" title="var">Interaction</span>) (<span class="id" title="var">l</span>:<span class="id" title="var">L</span>) :<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">sem_de</span> <span class="id" title="var">i</span> <span class="id" title="var">nil</span>)<br/>
@@ -3198,13 +3175,13 @@ said lifeline. This is formalized and proven in the "prune_removes_conflicts" Le
 </div>
 
 <div class="doc">
-<a id="lab28"></a><h3 class="section">The execution relation</h3>
+<a id="lab29"></a><h3 class="section">The execution relation</h3>
 
 
 <div class="paragraph"> </div>
 
 The operational-style semantics relies on the definition of a "small-step" that corresponds
-to the execution of an atomic action within an interaction and which result in a "remaining" or "follow-up" interaction
+to the execution of an atomic action within an interaction and which results in a "remaining" or "follow-up" interaction
 which exactly accepts all the suffixes (tails) of traces of the original that start with the given action
 (uniquely determined by its position in the interaction term, even though there may be several occurences of the
 same action in the interaction).
@@ -3216,14 +3193,6 @@ for any interactions "i" and "i'" and any action "a", the predicate "(is_next_of
 action "a" can be immediately executed in "i" and this results in "i" being rewritten into interaction "i'"
 that accepts all continuations of the executions of "i" that start with the execution of action "a"
 (at a precise position in the term structure of "i").
-
-<div class="paragraph"> </div>
-
-Given that, in this Coq proof, I do not formalize the notion of uniquely identifying actions via their positions,
-I do not have the unicity of "is_next_of". But it is not required in this Coq proof anyways.
-Let us remark however that I have formalized this in another Coq proof
-(for the correctness of a multi-trace analysis algorithm) available here:
-<a href="https://github.com/erwanM974/coq_hibou_label_multi_trace_analysis">https://github.com/erwanM974/coq_hibou_label_multi_trace_analysis</a> 
 
 <div class="paragraph"> </div>
 
@@ -3342,7 +3311,7 @@ The "is_next_of" predicate can be inferred inductively via twelve construction r
 </div>
 
 <div class="doc">
-<a id="lab29"></a><h4 class="section">Properties w.r.t. the denotational semantics</h4>
+<a id="lab30"></a><h4 class="section">Properties w.r.t. the denotational semantics</h4>
 
 
 <div class="paragraph"> </div>
@@ -3503,7 +3472,7 @@ This property is formalized and proven in the "execute_keep_de" Lemma below.
 </div>
 
 <div class="doc">
-<a id="lab30"></a><h3 class="section">Formal definition of the operational semantics</h3>
+<a id="lab31"></a><h3 class="section">Formal definition of the operational semantics</h3>
 
 
 <div class="paragraph"> </div>
@@ -3566,6 +3535,7 @@ Notably, we have already proven that "sem_de" accepts the same two construction 
 <br/>
 <span class="id" title="keyword">Theorem</span> <span class="id" title="var">op_implies_de</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
 &nbsp;&nbsp;(<span class="id" title="var">sem_op</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>) -&gt; (<span class="id" title="var">sem_de</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
 <span class="id" title="tactic">intros</span> <span class="id" title="var">H</span>.<br/>
 <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">t</span> <span class="id" title="var">generalizing</span> <span class="id" title="var">i</span>.<br/>
 - <span class="id" title="tactic">apply</span> <span class="id" title="var">terminates_implies_de_accept_nil</span>.<br/>
@@ -3602,12 +3572,12 @@ The proof in that other direction is explained in the next section.
 
 <div class="paragraph"> </div>
 
-<a id="lab31"></a><h2 class="section">Proof of the inclusion of "sem_de" into "sem_op"</h2>
+<a id="lab32"></a><h2 class="section">Proof of the inclusion of "sem_de" into "sem_op"</h2>
 
 
 <div class="paragraph"> </div>
 
-<a id="lab32"></a><h3 class="section">Hypotheses de tri</h3>
+<a id="lab33"></a><h3 class="section">Hypotheses de tri</h3>
 
 
 <div class="paragraph"> </div>
@@ -3771,7 +3741,7 @@ operated by the operational semantics.
 
 <div class="paragraph"> </div>
 
-<a id="lab33"></a><h3 class="section">Existence of a next interaction</h3>
+<a id="lab34"></a><h3 class="section">Existence of a next interaction</h3>
 
 
 <div class="paragraph"> </div>
@@ -4215,7 +4185,7 @@ We can finally prove the inclusion of "sem_de" into "sem_op".
 </div>
 
 <div class="doc">
-<a id="lab34"></a><h1 class="section">Conclusion</h1>
+<a id="lab35"></a><h2 class="section">Equivalence of "sem_de" and "sem_op"</h2>
 
 
 <div class="paragraph"> </div>
@@ -4230,12 +4200,1021 @@ as stated by the "sem_equivalence" Theorem.
 <div class="code">
 
 <br/>
-<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sem_equivalence</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sem_equivalence_de_op</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
 &nbsp;&nbsp;(<span class="id" title="var">sem_op</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>) &lt;-&gt; (<span class="id" title="var">sem_de</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>).<br/>
 <span class="id" title="keyword">Proof</span>.<br/>
 <span class="id" title="tactic">split</span>.<br/>
 - <span class="id" title="tactic">apply</span> <span class="id" title="var">op_implies_de</span>.<br/>
 - <span class="id" title="tactic">apply</span> <span class="id" title="var">de_implies_op</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab36"></a><h2 class="section">Execution Semantics</h2>
+
+
+<div class="paragraph"> </div>
+
+We will now define an algorithmization of the operational semantics.
+
+<div class="paragraph"> </div>
+
+<a id="lab37"></a><h3 class="section">Versions of the utility predicates using booleans</h3>
+
+
+<div class="paragraph"> </div>
+
+At first, I will define:
+<ul class="doclist">
+<li> "terminates_bool" which is a new version of the "terminates" predicate that returns a boolean rather than defines a Prop object
+
+</li>
+<li> "avoids_bool" which is a new version of the "avoids" predicate that returns a boolean rather than defines a Prop object
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+Of course, we then prove, on Lemmas "terminates_eq" and "avoids_eq" that both those definitions are equivalent.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">terminates_bool</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) : <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">interaction_empty</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_act</span> <span class="id" title="var">a</span>) =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_loop</span> <span class="id" title="var">lk</span> <span class="id" title="var">i1</span>) =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_alt</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">orb</span> (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i1</span>) (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i2</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_par</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">andb</span> (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i1</span>) (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i2</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_strict</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">andb</span> (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i1</span>) (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i2</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_seq</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">andb</span> (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i1</span>) (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i2</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">terminates_eq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span>:<span class="id" title="var">Interaction</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">terminates</span> <span class="id" title="var">i</span>) &lt;-&gt; (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i</span> = <span class="id" title="var">true</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">split</span> ; <span class="id" title="tactic">intros</span>.<br/>
+{ <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">orb_true_iff</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">right</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+}<br/>
+{ <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">trivial</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">orb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">right</span>. <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">trivial</span>.<br/>
+}<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">avoids_bool</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">l</span> : <span class="id" title="var">L</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">bool</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">interaction_empty</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_act</span> <span class="id" title="var">a</span>) =&gt; <span class="id" title="var">negb</span> (<span class="id" title="var">Fin.eqb</span> (<span class="id" title="var">lifeline</span> <span class="id" title="var">a</span>) <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_loop</span> <span class="id" title="var">lk</span> <span class="id" title="var">i1</span>) =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_alt</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">orb</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_par</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">andb</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_strict</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">andb</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_seq</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">andb</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">avoids_eq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">l</span>:<span class="id" title="var">L</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">avoids</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span>) &lt;-&gt; (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span> = <span class="id" title="var">true</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">split</span> ; <span class="id" title="tactic">intros</span>.<br/>
+{ <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">negb_true_iff</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">L_neqb</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">orb_true_iff</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">right</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+}<br/>
+{ <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">trivial</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">negb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">L_neqb</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">orb_true_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">right</span>. <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">trivial</span>.<br/>
+}<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+In addition to "avoids_eq", we also state and prove "avoids_neq" below.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">avoids_neq</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">l</span>:<span class="id" title="var">L</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">not</span> (<span class="id" title="var">avoids</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span>)) &lt;-&gt; (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span> = <span class="id" title="var">false</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">split</span> ; <span class="id" title="tactic">intros</span>.<br/>
+{ <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">negb_false_iff</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">Fin.eqb_eq</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">L_not_neq</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">andb_false_iff</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">avoids_decidability</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">right</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">avoids_decidability</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">exfalso</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">left</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>. <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">andb_false_iff</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">avoids_decidability</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">right</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">avoids_decidability</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">exfalso</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">left</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>. <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">andb_false_iff</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">avoids_decidability</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">right</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">avoids_decidability</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">exfalso</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">split</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">left</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>. <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">orb_false_iff</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">avoids_decidability</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="var">exfalso</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">pose</span> <span class="id" title="var">proof</span> (<span class="id" title="var">avoids_decidability</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="var">exfalso</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">right</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>. <span class="id" title="tactic">assumption</span>. }<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>. <span class="id" title="tactic">assumption</span>. }<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="var">contradiction</span>.<br/>
+}<br/>
+{ <span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">negb_false_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">Fin.eqb_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_false_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">contradiction</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_false_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">contradiction</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">andb_false_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">contradiction</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">intro</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">orb_false_iff</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">intro</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span> ; <span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+}<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab38"></a><h3 class="section">Determinization of the "is_prune_of" predicate into a "prune" fixpoint</h3>
+
+
+<div class="paragraph"> </div>
+
+If a precondition (avoids i l) is met on an interaction "i" and lifeline "l", then, the (is_prune_of i l _) function satisfies some interesting properties,
+which are the existence of an interaction "i'" such that (is_prune_of i l i') and the unicity of this "i'" interaction.
+
+<div class="paragraph"> </div>
+
+As a result, in this context, the predicate corresponds to a specific
+"prune" function that can be defined as a Fixpoint.
+
+<div class="paragraph"> </div>
+
+We define "prune" as a Fixpoint below. Let us notice that we do not specify the precondition that the input interaction "i"
+must avoid the input lifeline "l".
+This precondition will play a role when we will characterize this function, and is not included in its definition.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">prune</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">l</span> : <span class="id" title="var">L</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">Interaction</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">interaction_empty</span> =&gt; <span class="id" title="var">interaction_empty</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_act</span> <span class="id" title="var">a</span>) =&gt; (<span class="id" title="var">interaction_act</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_loop</span> <span class="id" title="var">lk</span> <span class="id" title="var">i1</span>) =&gt; <span class="id" title="keyword">match</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">true</span> =&gt; <span class="id" title="var">interaction_loop</span> <span class="id" title="var">lk</span> (<span class="id" title="var">prune</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">false</span> =&gt; <span class="id" title="var">interaction_empty</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_alt</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="keyword">match</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">true</span> =&gt; <span class="id" title="keyword">match</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">true</span> =&gt; <span class="id" title="var">interaction_alt</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">prune</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">prune</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">false</span> =&gt; <span class="id" title="var">prune</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">false</span> =&gt; <span class="id" title="var">prune</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_par</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">interaction_par</span> (<span class="id" title="var">prune</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) (<span class="id" title="var">prune</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_strict</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">interaction_strict</span> (<span class="id" title="var">prune</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) (<span class="id" title="var">prune</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_seq</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">interaction_seq</span> (<span class="id" title="var">prune</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) (<span class="id" title="var">prune</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+As explained earlier, we will now characterize this "prune" function w.r.t. the "is_prune_of" predicate.
+This characterisation correspond to the two following Lemmas:
+<ul class="doclist">
+<li> "prune_implication_1", which states that for any interactions "i" and "i'" and any lifeline "l", we have (is_prune_of i l i') -&gt; (i' = (prune i l))
+
+</li>
+<li> "prune_implication_2", which states that, given the precondition "avoids i l", then we have (is_prune_of i l (prune i l))
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">prune_implication_1</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span> <span class="id" title="var">i'</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">l</span>:<span class="id" title="var">L</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_prune_of</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span> <span class="id" title="var">i'</span>) -&gt; (<span class="id" title="var">prune</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span> = <span class="id" title="var">i'</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H7</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H7</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_neq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H6</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_neq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H6</span>. <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">H5</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_neq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">H4</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">prune_implication_2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span> <span class="id" title="var">i'</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">l</span>:<span class="id" title="var">L</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">avoids</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">prune</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span> = <span class="id" title="var">i'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_prune_of</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span> <span class="id" title="var">i'</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">prune_empty</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">prune_act</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">intro</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="var">contradiction</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">prune_strict</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">prune_seq</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">prune_par</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">assert</span> (<span class="id" title="var">H'</span>:=<span class="id" title="var">H</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H'</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H'</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H'</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">remember</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i2</span> <span class="id" title="var">l</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">AV2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">AV2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV2</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">prune_alt_both</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV2</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_neq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">prune_alt_left</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">assert</span> (<span class="id" title="var">H'</span>:=<span class="id" title="var">H</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H'</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H'</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H'</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">remember</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">AV1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">AV1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV1</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">prune_alt_both</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV1</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_neq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">prune_alt_right</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+- <span class="id" title="tactic">simpl</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">remember</span> (<span class="id" title="var">avoids_bool</span> <span class="id" title="var">i</span> <span class="id" title="var">l</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">AV</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">AV</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">prune_loop_select</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">avoids_neq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">HeqAV</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">prune_loop_elim</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;}<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab39"></a><h3 class="section">Managing positions with the Dewey Decimal Notation</h3>
+
+
+<div class="paragraph"> </div>
+
+Interaction terms have a structure which is that of a binary tree.
+Indeed, constructors used to construct interactions have an arity of at most 2.
+As a result, we can navigate within interaction terms using a position system in {1,2}^* akin to that of the Dewey Decimal Notation.
+We define a "Position" inductive type which form words on {1,2}^* with:
+<ul class="doclist">
+<li> "epsilon" being the empty position
+
+</li>
+<li> "left" serving as the "1" letter
+
+</li>
+<li> "right" serving as the "2" letter
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">Position</span> : <span class="id" title="keyword">Set</span> :=<br/>
+&nbsp;&nbsp;|<span class="id" title="var">epsilon</span>:<span class="id" title="var">Position</span><br/>
+&nbsp;&nbsp;|<span class="id" title="tactic">left</span>:<span class="id" title="var">Position</span>-&gt;<span class="id" title="var">Position</span><br/>
+&nbsp;&nbsp;|<span class="id" title="tactic">right</span>:<span class="id" title="var">Position</span>-&gt;<span class="id" title="var">Position</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Because there can be several instances of the same action within an interaction term, we will use their positions within the interaction
+to designate them unambiguously.
+
+<div class="paragraph"> </div>
+
+The principle of the execution semantics is to decorrelate, within the operational semantics, a process which is that of determining which actions can be executed,
+and a process which is that of computing which is the follow-up interaction after the execution of a specific action.
+
+<div class="paragraph"> </div>
+
+Given that it is both the nature of the action and its specific position within the interaction term that determines which will be the follow-up interaction
+to its execution, we have to consider the positions of actions for both those processes.
+
+<div class="paragraph"> </div>
+
+<a id="lab40"></a><h3 class="section">Determining the frontier of execution</h3>
+
+
+<div class="paragraph"> </div>
+
+The frontier of execution of an interaction is the set of the positions of the actions that can be immediately executed within it.
+We define the frontier using an inductive predicate "is_in_frontier" such that for any interaction "i", any position "p" and any action "a" we have
+(is_in_frontier i p a) if action "a" is at position "p" within "i" and can be immediately executed.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">is_in_frontier</span> : <span class="id" title="var">Interaction</span> -&gt; <span class="id" title="var">Position</span> -&gt; <span class="id" title="var">Action</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;| <span class="id" title="var">front_act</span>          : <span class="id" title="keyword">forall</span> (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_act</span> <span class="id" title="var">a</span>) <span class="id" title="var">epsilon</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_loop</span>         : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">sk</span>:<span class="id" title="var">ScheduleKind</span>) (<span class="id" title="var">p</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_loop</span> <span class="id" title="var">sk</span> <span class="id" title="var">i</span>) (<span class="id" title="tactic">left</span> <span class="id" title="var">p</span>) <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_strict_left</span>  : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i1</span> <span class="id" title="var">i2</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p1</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_strict</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>) <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_strict_right</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i1</span> <span class="id" title="var">i2</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p2</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i2</span> <span class="id" title="var">p2</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">terminates</span> <span class="id" title="var">i1</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_strict</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>) <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_seq_left</span>     : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i1</span> <span class="id" title="var">i2</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p1</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_seq</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>) <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_seq_right</span>    : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i1</span> <span class="id" title="var">i2</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p2</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i2</span> <span class="id" title="var">p2</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">avoids</span> <span class="id" title="var">i1</span> (<span class="id" title="var">lifeline</span> <span class="id" title="var">a</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_seq</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>) <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_par_left</span>     : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i1</span> <span class="id" title="var">i2</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p1</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_par</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>) <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_par_right</span>     : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i1</span> <span class="id" title="var">i2</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p2</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i2</span> <span class="id" title="var">p2</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_par</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>) <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_alt_left</span>     : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i1</span> <span class="id" title="var">i2</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p1</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_alt</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>) <span class="id" title="var">a</span>)<br/>
+&nbsp;| <span class="id" title="var">front_alt_right</span>     : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i1</span> <span class="id" title="var">i2</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p2</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i2</span> <span class="id" title="var">p2</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_in_frontier</span> (<span class="id" title="var">interaction_alt</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>) <span class="id" title="var">a</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab41"></a><h3 class="section">Determinization of the "is_next_of" predicate into an "execute" fixpoint</h3>
+
+
+<div class="paragraph"> </div>
+
+In a similar manner to what we did for the "is_prune_of" predicate with the "prune" function,
+we will now define an "execute" Fixpoint which corresponds to the execution relation "is_next_of".
+
+<div class="paragraph"> </div>
+
+If a precondition (is_in_frontier i p a) is met on an interaction "i", a position "p" and an action "a",
+then the (is_next_of i a _) function satisfies an existence property which is that there exists an "i'" such that (is_next_of i a i').
+We do not however have a unicity property given that the "is_next_of" predicate do not take into consideration the position of the action "a" that is executed.
+
+<div class="paragraph"> </div>
+
+In any case, we define an "execute" function as a Fixpoint below. 
+Let us notice that we do not specify any precondition on the position "p" w.r.t. the interaction "i".
+This precondition will play a role when we will characterize this function, and is not included in its definition.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">execute</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">p</span> : <span class="id" title="var">Position</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">l</span>:<span class="id" title="var">L</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="var">Interaction</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">p</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">epsilon</span> =&gt; <span class="id" title="var">interaction_empty</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>) =&gt; <span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_loop</span> <span class="id" title="var">lk</span> <span class="id" title="var">i1</span>) =&gt; <span class="id" title="keyword">match</span> <span class="id" title="var">lk</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">lstrict</span> =&gt; <span class="id" title="var">interaction_strict</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">l</span>) <span class="id" title="var">i</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">lseq</span> =&gt; <span class="id" title="var">interaction_seq</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">l</span>) <span class="id" title="var">i</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">lpar</span> =&gt; <span class="id" title="var">interaction_par</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">l</span>) <span class="id" title="var">i</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_alt</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>)    =&gt; <span class="id" title="var">execute</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_strict</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">interaction_strict</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">l</span>) <span class="id" title="var">i2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_seq</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>)    =&gt; <span class="id" title="var">interaction_seq</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">l</span>) <span class="id" title="var">i2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_par</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>)    =&gt; <span class="id" title="var">interaction_par</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i1</span> <span class="id" title="var">p1</span> <span class="id" title="var">l</span>) <span class="id" title="var">i2</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">interaction_empty</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>) =&gt; <span class="id" title="keyword">match</span> <span class="id" title="var">i</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_alt</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>)    =&gt; <span class="id" title="var">execute</span> <span class="id" title="var">i2</span> <span class="id" title="var">p2</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_strict</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>) =&gt; <span class="id" title="var">execute</span> <span class="id" title="var">i2</span> <span class="id" title="var">p2</span> <span class="id" title="var">l</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_seq</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>)    =&gt; <span class="id" title="var">interaction_seq</span> (<span class="id" title="var">prune</span> <span class="id" title="var">i1</span> <span class="id" title="var">l</span>) (<span class="id" title="var">execute</span> <span class="id" title="var">i2</span> <span class="id" title="var">p2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<span class="id" title="var">interaction_par</span> <span class="id" title="var">i1</span> <span class="id" title="var">i2</span>)    =&gt; <span class="id" title="var">interaction_par</span> <span class="id" title="var">i1</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i2</span> <span class="id" title="var">p2</span> <span class="id" title="var">l</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span> =&gt; <span class="id" title="var">interaction_empty</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+As explained earlier, we will now characterize this "execute" function w.r.t. the "is_next_of" predicate.
+This characterisation correspond to the two following Lemmas:
+<ul class="doclist">
+<li> "execute_implication_1", which states that for any interactions "i" and "i'" and any action "a", if (is_next_of i a i') then there exists a position "p" in the frontier of "i" hosting that action "a" and we have "i' = execute i p (lifeline a)". 
+
+</li>
+<li> "execute_implication_2", which states that, given the precondition "(is_in_frontier i p a)", then we have (is_next_of i a (execute i p (lifeline a)))
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">execute_implication_1</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span> <span class="id" title="var">i'</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_next_of</span> <span class="id" title="var">i</span> <span class="id" title="var">a</span> <span class="id" title="var">i'</span>) <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="tactic">exists</span> <span class="id" title="var">p</span>:<span class="id" title="var">Position</span>, <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/\ (<span class="id" title="var">execute</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> (<span class="id" title="var">lifeline</span> <span class="id" title="var">a</span>) = <span class="id" title="var">i'</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">epsilon</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">front_act</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p1</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">front_strict_left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p2</span>,<span class="id" title="var">H2</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">front_strict_right</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H6</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p1</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">front_seq_left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p2</span>,<span class="id" title="var">H2</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">front_seq_right</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">prunable_implies_avoids</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> <span class="id" title="var">i1'</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H6</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">prune_implication_1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H5</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p1</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">front_par_left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p2</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">front_par_right</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p1</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">front_alt_left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;{ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p2</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">right</span> <span class="id" title="var">p2</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">apply</span> <span class="id" title="var">front_alt_right</span> ; <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;}<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p1</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">apply</span> <span class="id" title="var">front_loop</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p1</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">apply</span> <span class="id" title="var">front_loop</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">IHi</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p1</span>,<span class="id" title="var">H4</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">exists</span> (<span class="id" title="tactic">left</span> <span class="id" title="var">p1</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">apply</span> <span class="id" title="var">front_loop</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>. <span class="id" title="tactic">reflexivity</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">execute_implication_2</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>) (<span class="id" title="var">p</span>:<span class="id" title="var">Position</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">is_next_of</span> <span class="id" title="var">i</span> <span class="id" title="var">a</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> (<span class="id" title="var">lifeline</span> <span class="id" title="var">a</span>)) ).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">execute_at_leaf</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_left_strict</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_right_strict</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_left_seq</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_right_seq</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;* <span class="id" title="tactic">apply</span> <span class="id" title="var">prune_implication_2</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">assumption</span>. }<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="id" title="tactic">reflexivity</span>. }<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_left_par</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_right_par</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_left_alt</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi2</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_right_alt</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H2</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">symmetry</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H3</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">sk</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">execute_loop_strict</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">execute_loop_seq</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHi</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H4</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">execute_loop_par</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab42"></a><h3 class="section">Definition of the Execution Semantics</h3>
+
+
+<div class="paragraph"> </div>
+
+We can now define the execution semantics "sem_ex" below. 
+Its definition is quite similar to that of the operational semantics, 
+except that we use the definition of the frontier and of the execution.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">sem_ex</span> : <span class="id" title="var">Interaction</span> -&gt; <span class="id" title="var">Trace</span> -&gt; <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;| <span class="id" title="var">sem_ex_empty</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span> :<span class="id" title="var">Interaction</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_true</span> (<span class="id" title="var">terminates_bool</span> <span class="id" title="var">i</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">sem_ex</span> <span class="id" title="var">i</span> <span class="id" title="var">nil</span>)<br/>
+&nbsp;| <span class="id" title="var">sem_ex_event</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">i</span>:<span class="id" title="var">Interaction</span>) (<span class="id" title="var">p</span>:<span class="id" title="var">Position</span>) (<span class="id" title="var">a</span>:<span class="id" title="var">Action</span>) (<span class="id" title="var">t</span>:<span class="id" title="var">Trace</span>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">is_in_frontier</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">sem_ex</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> (<span class="id" title="var">lifeline</span> <span class="id" title="var">a</span>)) <span class="id" title="var">t</span>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&gt; (<span class="id" title="var">sem_ex</span> <span class="id" title="var">i</span> (<span class="id" title="var">cons</span> <span class="id" title="var">a</span> <span class="id" title="var">t</span>) ).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab43"></a><h2 class="section">Equivalence of "sem_op" and "sem_ex"</h2>
+
+
+<div class="paragraph"> </div>
+
+In the following we prove the equivalence of the execution semantics and the operational semantics.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">ex_implies_op</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">sem_ex</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>) -&gt; (<span class="id" title="var">sem_op</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">t</span> <span class="id" title="var">generalizing</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">is_true</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">terminates_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">sem_op_empty</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<span class="id" title="var">sem_op_event</span> <span class="id" title="var">i</span> (<span class="id" title="var">execute</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> (<span class="id" title="var">lifeline</span> <span class="id" title="var">a</span>)) <span class="id" title="var">a</span> <span class="id" title="var">t</span>).<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">execute_implication_2</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHt</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">op_implies_ex</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">sem_op</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>) -&gt; (<span class="id" title="var">sem_ex</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span>.<br/>
+<span class="id" title="tactic">dependent</span> <span class="id" title="tactic">induction</span> <span class="id" title="var">t</span> <span class="id" title="var">generalizing</span> <span class="id" title="var">i</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">terminates_eq</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">sem_ex_empty</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">is_true</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">inversion</span> <span class="id" title="var">H</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">execute_implication_1</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H3</span> <span class="id" title="keyword">as</span> (<span class="id" title="var">p</span>,<span class="id" title="var">H3</span>).<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">H3</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> (<span class="id" title="var">sem_ex_event</span> <span class="id" title="var">i</span> <span class="id" title="var">p</span> <span class="id" title="var">a</span> <span class="id" title="var">t</span>).<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;+ <span class="id" title="tactic">apply</span> <span class="id" title="var">IHt</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">H5</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sem_equivalence_op_ex</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">sem_ex</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>) &lt;-&gt; (<span class="id" title="var">sem_op</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">split</span>.<br/>
+- <span class="id" title="tactic">apply</span> <span class="id" title="var">ex_implies_op</span>.<br/>
+- <span class="id" title="tactic">apply</span> <span class="id" title="var">op_implies_ex</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a id="lab44"></a><h1 class="section">Conclusion</h1>
+
+
+<div class="paragraph"> </div>
+
+Let us conclude by expliciting that all three semantics are indeed equivalent.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sem_equivalence_1</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">sem_de</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>) &lt;-&gt; (<span class="id" title="var">sem_op</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">symmetry</span>.<br/>
+<span class="id" title="tactic">apply</span> <span class="id" title="var">sem_equivalence_de_op</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sem_equivalence_2</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">sem_op</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>) &lt;-&gt; (<span class="id" title="var">sem_ex</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">symmetry</span>.<br/>
+<span class="id" title="tactic">apply</span> <span class="id" title="var">sem_equivalence_op_ex</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sem_equivalence_3</span> (<span class="id" title="var">i</span> : <span class="id" title="var">Interaction</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">Trace</span>) :<br/>
+&nbsp;&nbsp;(<span class="id" title="var">sem_de</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>) &lt;-&gt; (<span class="id" title="var">sem_ex</span> <span class="id" title="var">i</span> <span class="id" title="var">t</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">split</span> ; <span class="id" title="tactic">intros</span>.<br/>
+- <span class="id" title="tactic">apply</span> <span class="id" title="var">sem_equivalence_2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">sem_equivalence_1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+- <span class="id" title="tactic">apply</span> <span class="id" title="var">sem_equivalence_1</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">sem_equivalence_2</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
 <span class="id" title="keyword">Qed</span>.<br/>
 
 <br/>
