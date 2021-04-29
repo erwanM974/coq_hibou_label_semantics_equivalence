@@ -37,6 +37,13 @@ of those definitions. Those three definitions correspond to:
 
 ** Related works
 
+*** Publications
+
+- #<a href="https://link.springer.com/chapter/10.1007%2F978-3-030-45234-6_24">Revisiting Semantics of Interactions for Trace Validity Analysis</a># 
+- #<a href="https://dl.acm.org/doi/10.1145/3412841.3442054">A small-step approach to multi-trace checking against interactions</a># 
+
+*** Other Coq proves and tools
+
 The coq file itself is hosted on the following repository:
 - #<a href="https://github.com/erwanM974/coq_hibou_label_semantics_equivalence">https://github.com/erwanM974/coq_hibou_label_semantics_equivalence</a># 
 
@@ -78,44 +85,7 @@ Require Import Coq.Arith.Peano_dec.
 * Preliminaries
 
 This section is dedicated to enoncing some basic types and properties on which the remainder of the proof will be based.
-
-** Basic Properties
-
-Let us start by stating some basic properties on integers and lists that will be usefull in the remainder of the proof:
-- "eq_or_not_eq_nat" corresponds to the decidability of the equality for natural integers
-- "non_empty_nat_is_succ" states that, if a natural integer is not zero then it has a predecessor
-- "list_not_empty_is_cons" states that, if a list is not empty then it has a head and a tail
-- "cons_eq_app" states that, if a list composed of a head and a tail is equal to the concatenation of two lists then either the first list is empty or it can be decomposed as the head and another tail
 **)
-
-Lemma eq_or_not_eq_nat (x y:nat) :
-  (x = y) \/ (x<>y).
-Proof.
-pose proof (eq_nat_dec x y).
-destruct H.
-- destruct e.
-  left. reflexivity.
-- right. assumption.
-Qed.
-
-Lemma non_empty_nat_is_succ (x:nat) :
-  (x <> 0)
-  -> (exists n:nat, x = S n).
-Proof.
-intros.
-induction x.
-- contradiction.
-- exists x. reflexivity.
-Qed.
-
-Lemma list_not_empty_is_cons (A:Type) (l:list A) :
- (l<>nil) -> (exists (a:A) (l':list A), l = a :: l').
-Proof.
-intros.
-induction l.
-- contradiction.
-- exists a. exists l. reflexivity.
-Qed.
 
 Theorem cons_eq_app (A : Type) (l l1 l2:list A) (a:A) :
       (a :: l = l1 ++ l2) 
@@ -138,82 +108,6 @@ dependent induction l1.
   destruct H1.
   exists l1.
   reflexivity.
-Qed.
-
-(**
-** Substitutions and eliminations of elements in lists
-
-In the following, I define some functions to manipulate lists. 
-To do so, I use Fixpoints and as a result those functions are checked by Coq's termination checker.
-
-- "list_replace_nth" replaces the "n-th" element of a list by another element
-- "list_remove_nth" removes the "n-th" element of a list
-
-Some tests (defined as Lemmas) ascertain the effect of those functions
-
-The "list_remove_keep_in" Lemma states that, if one were to find an element "x" in a list
-resulting from the removal of another element, then this "x" element must also be in the original list.
-**)
-
-Fixpoint list_replace_nth (A:Type) (n:nat) (l:list A) (x:A) {struct l} : list A :=
-    match n, l with
-      | O, e :: l' => x :: l'
-      | O, other => nil
-      | S m, nil => nil
-      | S m, e :: l' => e :: (list_replace_nth A m l' x)
-    end.
-
-Lemma test_list_replace_nth_1 :
-  list_replace_nth nat 0 (12::nil) 1 = 1::nil.
-Proof.
-simpl. reflexivity.
-Qed.
-
-Lemma test_list_replace_nth_2 :
-  list_replace_nth nat 1 (12::13::nil) 1 = 12::1::nil.
-Proof.
-simpl. reflexivity.
-Qed.
-
-Fixpoint list_remove_nth (A:Type) (n:nat) (l:list A) {struct l} : list A :=
-    match n, l with
-      | O, e :: l' => l'
-      | O, other => nil
-      | S m, nil => nil
-      | S m, e :: l' => e :: (list_remove_nth A m l')
-    end.
-
-Lemma test_list_remove_nth_1 :
-  list_remove_nth nat 0 (12::nil) = nil.
-Proof.
-simpl. reflexivity.
-Qed.
-
-Lemma test_list_remove_nth_2 :
-  list_remove_nth nat 1 (12::13::nil) = 12::nil.
-Proof.
-simpl. reflexivity.
-Qed.
-
-Lemma list_remove_keep_in (A:Type) (n:nat) (l:list A) (x:A) :
-   In x (list_remove_nth A n l) -> In x l.
-Proof.
-intros. 
-dependent induction l generalizing n.
-- induction n.
-  + contradiction.
-  + contradiction.
-- simpl in *.
-  destruct (eq_nat_dec n 0).
-  + symmetry in e. destruct e.
-    right. assumption.
-  + apply non_empty_nat_is_succ in n0. 
-    destruct n0. 
-    symmetry in H0. destruct H0.
-    simpl in H. destruct H.
-    * left. assumption.
-    * right. apply (IHl x0).
-      assumption.
 Qed.
 
 (** 
@@ -306,9 +200,6 @@ As hinted at ealier, in this modelling framework:
 The semantic domain is therefore the universe of traces.
 
 The "Trace" type is formally defined below as that of lists of actions ("Action" type).
-
-Functions "list_replace_nth" and "subs_remove" that were defined above to replace and remove elements in generic lists
-are aliased and specialised for use in lists of traces as "subs_replace" and "subs_remove"
 **)
 
 Definition Trace : Type := list Action.
@@ -430,12 +321,8 @@ and some of their properties stated and proven.
 (**
 *** Concatenation
 
-For the concatenation operator "++", most interesting properties are already shipped with Coq
+For the concatenation operator "++", most interesting properties are already shipped in with Coq
 and can be used in proofs more or less direclty (with "simpl.", "inversion." and so on).
-
-We only define the following two properties:
-- "concat_nil_prop0", which states that, for any traces t1 and t2, if t1++t2 is not the empty trace, then either t1 or t2 is not empty
-- "concat_split", which states that, for any traces t1, t2 and t, if t1++t2=a::t and t1 is not the empty trace, then it means that t1 begins with a as a head and has a certain tail t3
 **)
 
 Lemma concat_nil_prop0 (t1 t2:Trace) :
@@ -462,18 +349,6 @@ destruct H1 ; destruct H2.
   + left. assumption.
   + intro. apply app_eq_nil in H2.
     destruct H2. contradiction.
-Qed.
-
-Lemma concat_split (a:Action) (t1 t2 t:Trace) :
-  ( (t1 ++ t2 = a :: t) /\ (t1 <> nil) )
-  -> (exists t3:Trace, (t1 = a :: t3) /\ (t = t3 ++ t2)).
-Proof.
-intros. destruct H.
-induction t1.
-- contradiction. 
-- clear H0. inversion H. destruct H1.
-  exists t1.
-  split ; reflexivity.
 Qed.
 
 
@@ -505,14 +380,7 @@ Inductive is_interleaving : Trace -> Trace -> Trace -> Prop :=
                               (is_interleaving t1 t2 t) -> (is_interleaving t1 (a::t2) (a::t)).
 
 (**
-Interesting properties of the "is_interleaving" that will be useful later on include:
-- the guarantee of the existence of an interleaving t (at least one) for any traces t1 and t2 "is_interleaving_existence"
-- "is_interleaving_nil_prop0" which is the same property as "concat_nil_prop0" but for the interleaving operator instead of the concatenation
-- "is_interleaving_nil_prop1", which states that if the empty trace is an interleaving of t1 and t2, then both t1 and t2 must be empty
-- "is_interleaving_nil_prop2", which states that if t is an interleaving of the empty trace and t2, then t=t2
-- "is_interleaving_nil_prop3", which states that if t is an interleaving of t1 and the empty trace, then t=t1
-- "is_interleaving_split" is a similar property as "concat_split" but for the interleaving operator instead of the concatenation
- - let us also note that, given that interleavings are allowed, in contrast to ++, the head action "a" can be found in either t1 or t2 instead of uniquely t1
+Interesting properties of the "is_interleaving" that will be useful later on
 **)
 
 Lemma is_interleaving_existence (t1 t2:Trace) :
@@ -596,28 +464,36 @@ dependent induction H.
   reflexivity.
 Qed.
 
-Lemma is_interleaving_split (a:Action) (t1 t2 t:Trace) :
-  (is_interleaving t1 t2 (a :: t))
-  -> (
-       (exists t3:Trace, (t2=a::t3)/\(is_interleaving t1 t3 t))
-       \/ (exists t3:Trace, (t1=a::t3)/\(is_interleaving t3 t2 t))
-     ).
+Lemma is_interleaving_commutativity (t1 t2 t:Trace) :
+  (is_interleaving t1 t2 t) <-> (is_interleaving t2 t1 t).
 Proof.
-intros.
-dependent induction H.
-- left. exists t. split.
-  + reflexivity.
-  + apply interleaving_nil_left.
-- right. exists t. split.
-  + reflexivity.
-  + apply interleaving_nil_right.
-- right. exists t1. split.
-  + reflexivity.
-  + assumption.
-- left. exists t2. split.
-  + reflexivity.
-  + assumption.
-Qed. 
+dependent induction t generalizing t1 t2.
+- split ; intros ; apply is_interleaving_nil_prop1 in H
+  ; destruct H ; symmetry in H ; destruct H ; symmetry in H0 ; destruct H0
+  ; apply interleaving_nil_left.
+- split ; intros.
+  + inversion H.
+    * apply interleaving_nil_right.
+    * apply interleaving_nil_left.
+    * destruct H1. apply interleaving_cons_right.
+      apply IHt. assumption.
+    * destruct H2. apply interleaving_cons_left.
+      apply IHt. assumption. 
+  + inversion H.
+    * apply interleaving_nil_right.
+    * apply interleaving_nil_left.
+    * destruct H1. apply interleaving_cons_right.
+      apply IHt. assumption.
+    * destruct H2. apply interleaving_cons_left.
+      apply IHt. assumption. 
+Qed.
+
+Lemma is_interleaving_assoc (t1 t2 t3 tmA tmB t:Trace):
+  (is_interleaving t1 t2 tmA)
+  -> (is_interleaving t2 t3 tmB)
+  -> ( (is_interleaving tmA t3 t) <-> (is_interleaving t1 tmB t)).
+Proof.
+Admitted.
 
 (**
 *** Weak Sequencing
@@ -669,15 +545,8 @@ Inductive is_weak_seq : Trace -> Trace -> Trace -> Prop :=
                               -> (is_weak_seq t1 (a::t2) (a::t)).
 
 (**
-In a similar fashion to what I did for the interleaving operator, I state and prove in the following some properties on the weak sequencing operator:
-- the guarantee of the existence of a weak sequence t (at least one) for any traces t1 and t2 "is_weak_seq_existence"
-- "is_weak_seq_nil_prop0"
-- "is_weak_seq_nil_prop1", which states that if the empty trace is a weak sequence of t1 and t2, then both t1 and t2 must be empty
-- "is_weak_seq_nil_prop2", which states that if t is a weak sequence of the empty trace and t2, then t=t2
-- "is_weak_seq_nil_prop3", which states that if t is a weak sequence of t1 and the empty trace, then t=t1
-- "is_weak_seq_split", which states that if (a :: t) is a weak sequence of t1 and t2, then either t1 starts with "a" or t2 starts with "a" and there is no conflict between t1 and "a"
+In a similar fashion to what I did for the interleaving operator, I state some properties of the weak sequencing operator
 **)
-
 
 Lemma is_weak_seq_existence (t1 t2:Trace) :
   exists t:Trace, is_weak_seq t1 t2 t.
@@ -762,34 +631,12 @@ dependent induction H.
   reflexivity.
 Qed.
 
-Lemma is_weak_seq_split (a:Action) (t1 t2 t:Trace) :
-  (is_weak_seq t1 t2 (a :: t))
-  -> (
-       ( (no_conflict t1 a) /\ (exists t3:Trace, (t2=a::t3)/\(is_weak_seq t1 t3 t)) )
-       \/ (exists t3:Trace, (t1=a::t3)/\(is_weak_seq t3 t2 t))
-     ).
+Lemma is_weak_seq_assoc (t1 t2 t3 tmA tmB t:Trace):
+  (is_weak_seq t1 t2 tmA)
+  -> (is_weak_seq t2 t3 tmB)
+  -> ( (is_weak_seq tmA t3 t) <-> (is_weak_seq t1 tmB t)).
 Proof.
-intros.
-dependent induction H.
-- left. split.
-  + apply no_conflict_nil.
-  + exists t. split.
-    * reflexivity.
-    * apply weak_seq_nil_left.
-- right. exists t. split.
-  + reflexivity.
-  + apply weak_seq_nil_right.
-- right. exists t1. split.
-  + reflexivity.
-  + assumption.
-- left. split.
-  + assumption.
-  + exists t2.
-    split.
-    * reflexivity.
-    * assumption.
-Qed.
-
+Admitted.
 
 (**
 *** Remark on the notion of scheduling
@@ -854,12 +701,7 @@ Inductive n_merge_schedule :
 
 (**
 In a similar fashion to what was done for the three scheduling operators, 
-one can define an prove some properties for the merge operator:
-- the guarantee of the existence of a merged trace t (at least one) for any list of traces "subs" "n_merge_schedule_existence"
-- "n_merge_schedule_nil_prop0", which states that if the merger of a list of traces is non-empty then there exists a non empty trace in that list of traces
-- "n_merge_schedule_nil_prop1", which states that if the empty trace is a merger of a list of traces, then this list of traces is empty
-- "n_merge_schedule_nil_prop2", which states that if a trace is a merger of an empty list of traces, then it must be the empty trace
-- "n_merge_schedule_nonil_prop0", which states that only non-empty traces are allowed within a list of traces that is used as entry for the merge operator
+one can define an prove some properties for the merge operator
 **)
 
 Lemma n_merge_schedule_existence
@@ -1020,35 +862,109 @@ dependent induction H.
   + apply IHn_merge_schedule. assumption.
 Qed.
 
-(**
-As I am going to manipulate lists of traces when dealing with the merge operator,
-I adapt here below the previously defined functions to replace or remove the n-th element of a list
-to lists of traces:
-- "subs_replace" replaces the n-th element of list of traces "subs" by a trace "t"
-- "subs_remove" removes the n-th element of a list of traces
-- "subs_remove_keep_in" is a Lemma stating that if a certain trace is found in a list of traces in which we have remove some elements, then it has to be found in the original list of traces
-**)
+Lemma n_merge_schedule_single_merge (lk:ScheduleKind) (x t:Trace) :
+  (n_merge_schedule lk (t :: nil) x)
+  -> (t=x).
+Proof.
+Admitted.
 
-Definition subs_replace (n:nat) (subs:list Trace) (t:Trace) : list Trace 
-  := list_replace_nth Trace n subs t. 
 
-Definition subs_remove (n:nat) (subs:list Trace) : list Trace 
-  := list_remove_nth Trace n subs. 
+Lemma n_merge_add_left (lk:ScheduleKind) (subs:list Trace) (t1 t:Trace) (a:Action):
+  (n_merge_schedule lk (t1 :: subs) t)
+  -> (n_merge_schedule lk ((a::t1) :: subs) (a::t)).
+Proof.
+Admitted.
 
-Lemma subs_remove_keep_in (n:nat) (subs:list Trace) (t:Trace) :
-   In t (subs_remove n subs) -> In t subs.
+Lemma n_merge_seq_reorder_prop1 (sub1 sub3 : list Trace) (t2 t : Trace) (a:Action):
+  (n_merge_schedule lseq (sub1 ++ (t2::sub3)) t)
+  -> (forall t1:Trace, (In t1 sub1) -> (no_conflict t1 a))
+  -> (n_merge_schedule lseq (sub1 ++ ((a::t2)::sub3)) (a::t)).
 Proof.
 intros.
-apply (list_remove_keep_in (Trace) n subs t).
-unfold subs_remove in H.
-assumption.
+dependent induction sub1.
+- simpl in *.
+  apply n_merge_add_left. assumption.
+- inversion H.
+  destruct H1.
+  symmetry in H6. destruct H6.
+  apply (merge_seq (sub1 ++ (a0::t2)::sub3) t_first (a0::t_rep)).
+  + assumption.
+  + apply IHsub1.
+    * assumption.
+    * intros. apply H0. simpl. right. assumption.
+  + apply weak_seq_cons_right.
+    * assumption.
+    * apply H0. simpl. left. reflexivity.
 Qed.
 
+Lemma n_merge_lseq_bi_assoc (sub1 sub2 : list Trace) (t1 t2 t : Trace):
+  (n_merge_schedule lseq sub1 t1)
+  -> (n_merge_schedule lseq sub2 t2)
+  -> (is_weak_seq t1 t2 t)
+  -> (n_merge_schedule lseq (sub1++sub2) t).
+Proof.
+intros.
+dependent induction H generalizing sub2 t2 t.
+- simpl.
+  apply is_weak_seq_nil_prop2 in H1.
+  destruct H1. assumption.
+- pose proof (is_weak_seq_existence t_rep t2).
+  destruct H4 as (t3,H4).
+  apply (merge_seq (remain++sub2) t_first t3 t).
+  + assumption.
+  + apply (IHn_merge_schedule sub2 t2 t3).
+    * reflexivity.
+    * assumption.
+    * assumption.
+  + apply (is_weak_seq_assoc t_first t_rep t2 t_merge) ; assumption.
+Qed.
+
+
+Lemma n_merge_lseq_sandwich (sub1 sub3 : list Trace) (t1 t2 t3 tm t : Trace):
+  (*(t2<>nil)
+  ->*) (n_merge_schedule lseq sub1 t1)
+  -> (n_merge_schedule lseq sub3 t3)
+  -> (is_weak_seq t2 t3 tm)
+  -> (is_weak_seq t1 tm t)
+  -> (n_merge_schedule lseq (sub1 ++ t2 :: sub3) t).
+Proof.
+intros.
+apply (n_merge_lseq_bi_assoc sub1 (t2::sub3) t1 tm).
+- assumption.
+- apply (merge_seq sub3 t2 t3 tm).
+  + admit.
+  + assumption.
+  + assumption.
+- assumption.
+Admitted.
+
+Lemma n_merge_lpar_bi_assoc (sub1 sub2 : list Trace) (t1 t2 t : Trace):
+  (n_merge_schedule lpar sub1 t1)
+  -> (n_merge_schedule lpar sub2 t2)
+  -> (is_interleaving t1 t2 t)
+  -> (n_merge_schedule lpar (sub1++sub2) t).
+Proof.
+intros.
+dependent induction H generalizing sub2 t2 t.
+- simpl.
+  apply is_interleaving_nil_prop2 in H1.
+  destruct H1. assumption.
+- pose proof (is_interleaving_existence t_rep t2).
+  destruct H4 as (t3,H4).
+  apply (merge_par (remain++sub2) t_first t3 t).
+  + assumption.
+  + apply (IHn_merge_schedule sub2 t2 t3).
+    * reflexivity.
+    * assumption.
+    * assumption.
+  + apply (is_interleaving_assoc t_first t_rep t2 t_merge) ; assumption.
+Qed.
 
 (**
 *** Some considerations on the distributivity of "no_conflict" w.r.t. the previous operators
 
-In the following we demonstrate the distributive composition of the "no_conflict" function w.r.t. the three scheduling operators and the merge operator 
+In the following we demonstrate the distributive composition of the "no_conflict" function w.r.t.
+the three scheduling operators and the merge operator 
 **)
 
 Lemma no_conflict_concat (t1 t2:Trace) (a:Action) :
@@ -1260,18 +1176,14 @@ split ; intros.
 Qed.
 
 
-
 (**
 * An Interaction Language and its semantics 
 
 This section is the core of the proof. It is dedicated to:
-- the definition of the syntax of the interaction language. This syntax corresponds to the definition of a context-free grammar in which terms are build inductively from some basic terms and the application of some binary constructors to form more complex terms (as binary trees)
+- the definition of the syntax of the interaction language. This syntax corresponds to the definition of a context-free grammar in which terms are build inductively from some basic terms and the application of some unary and binary constructors to form more complex terms (as binary trees)
 - the definition of a denotational-style semantics based on the composition of sets of traces using the previously defined operators on the semantic domain
-- the definition of an operational-style semantics and the proof of its equivalence w.r.t. the denotational one
-
-The proof will be introduced in two steps:
-- at first we will prove that the operational semantics is included in the denotational semantics. Elements of this proof will be introduced progressively in the same time as we are defining the different functions that take part in the definition of the operational semantics. Once all of those intermediate functions are defined, we will define the operational semantics and its inclusion in the denotational semantics will be almost immediately inferred.
-- in a second step, we will prove that the denotational semantics is included in the operational semantics.
+- the definition of a structural operational semantics and the proof of its equivalence w.r.t. the denotational one
+- the definition of an algorithmization of the operational semantics and the proof of its equivalence w.r.t. the operational semaantics
 **)
 
 
@@ -1340,86 +1252,6 @@ match i with
                                     /\ (n_merge_schedule lk subs t)
 end.
 
-(**
-*** Some properties of "sem_de" w.r.t. loops
-
-Let us remark the following:
-- if an interaction "i" of the form "i = (interaction_loop lstrict i1)" accepts a trace t, and, if "i1" accepts a non-empty trace t1, then "i" must accept t1++t
-- if an interaction "i" of the form "i = (interaction_loop lseq i1)" accepts a trace t, and, if "i1" accepts a non-empty trace t1, then, given a trace t_merge such that (is_weak_seq t1 t t_merge), "i" must accept t_merge
-- if an interaction "i" of the form "i = (interaction_loop lpar i1)" accepts a trace t, and, if "i1" accepts a non-empty trace t1, then, given a trace t_merge such that (is_interleaving t1 t t_merge), "i" must accept t_merge
-
-Those three properties are stated and proven in the three Lemmas below:
-- "sem_de_loop_strict_concat"
-- "sem_de_loop_seq_weak_seq"
-- and "sem_de_loop_par_interleaving"
-**)
-
-Lemma sem_de_loop_strict_concat (i1:Interaction) (t1 t:Trace) :
-  (sem_de (interaction_loop lstrict i1) t)
-  -> (sem_de i1 t1) -> (t1<>nil)
-  -> (sem_de (interaction_loop lstrict i1) (t1 ++ t)).
-Proof.
-intros.
-simpl in *.
-destruct H as (subs,H).
-destruct H.
-exists (t1::subs).
-split.
-- intros.
-  simpl in H3.
-  destruct H3.
-  + destruct H3. assumption.
-  + apply H. assumption.
-- apply merge_strict.
-  + assumption.
-  + assumption.
-Qed.
-
-Lemma sem_de_loop_seq_weak_seq (i1:Interaction) (t1 t t_merge:Trace) :
-  (is_weak_seq t1 t t_merge)
-  -> (sem_de (interaction_loop lseq i1) t)
-  -> (sem_de i1 t1) -> (t1<>nil)
-  -> (sem_de (interaction_loop lseq i1) t_merge).
-Proof.
-intros.
-simpl in *.
-destruct H0 as (subs,H0).
-destruct H0.
-exists (t1::subs).
-split.
-- intros.
-  simpl in H4.
-  destruct H4.
-  + destruct H4. assumption.
-  + apply H0. assumption.
-- apply (merge_seq subs t1 t t_merge).
-  + assumption.
-  + assumption.
-  + assumption.
-Qed.
-
-Lemma sem_de_loop_par_interleaving (i1:Interaction) (t1 t t_merge:Trace) :
-  (is_interleaving t1 t t_merge)
-  -> (sem_de (interaction_loop lpar i1) t)
-  -> (sem_de i1 t1) -> (t1<>nil)
-  -> (sem_de (interaction_loop lpar i1) t_merge).
-Proof.
-intros.
-simpl in *.
-destruct H0 as (subs,H0).
-destruct H0.
-exists (t1::subs).
-split.
-- intros.
-  simpl in H4.
-  destruct H4.
-  + destruct H4. assumption.
-  + apply H0. assumption.
-- apply (merge_par subs t1 t t_merge).
-  + assumption.
-  + assumption.
-  + assumption.
-Qed.
 
 
 
@@ -1432,8 +1264,9 @@ By contrast we have not yet laid the groundworks for the definition of the opera
 
 In the following, we will progressively introduce the intermediate functions required for this definition.
 In the meanwhile we will state some Lemmas which describe how the denotational-style semantics "sem_de" relates to those intermediate functions.
-Those Lemmas will incidentaly constitute the main elements for the proof of the inclusion of the operational-style semantics
-into the denotational-style semantics.
+Those Lemmas will incidentaly constitute elements for the proof of equivalence between
+the operational-style semantics
+and the denotational-style semantics.
 
 *** Static analysis of interaction terms
 
@@ -1472,10 +1305,6 @@ Let us now see how the denotational semantics "sem_de" relates to the "terminate
 
 Intuitively, if an interaction terminates then it means that it can express the empty behavior (nothing visibly occurs).
 Reciprocally, if an interaction can express the empty behavior, then it means that it must terminate.
-
-Those two observations are stated and proved in the following Lemmas:
-- "terminates_implies_de_accept_nil"
-- and "de_accept_nil_implies_terminates"
 **)
 
 Lemma terminates_implies_de_accept_nil (i : Interaction) :
@@ -1749,11 +1578,11 @@ Qed.
 (**
 *** The pruning of interactions
 
-In the following we are interested in the question of how to rewrite interaction terms (using some form of term rewriting)
+In the following we are interested in the question of how to rewrite interaction terms
 that can avoid a certain lifeline so that all the trace that are expressed by the rewritten interaction have no conflicts w.r.t. the lifeline.
 
 Indeed, if we suppose that a certain interaction avoids a lifeline, it only means it can express traces that do not involve the lifeline,
-and it does not mean that all the traces it can express have no conflicts w.r.t. the lifeline.
+and it does necessarily not mean that all the traces it can express have no conflicts w.r.t. the lifeline.
 
 However we can infer a rewritten version of this interaction which expresses exactly all the traces of the original interaction
 that have no conflict w.r.t. the lifeline.
@@ -1763,7 +1592,7 @@ I call the inference of this rewritten interaction "pruning", and the rewritten 
 Concretely, for a given interaction "i" and for a given lifeline "l" such that the predicate "(avoids i l)" is held True,
 the predicate "(is_prune_of i l i')" states whether or not an interaction "i'" is the pruned version of "i" w.r.t. "l".
 
-This formulation as a predicate in fact corresponds to a certain "prune" function (that will be defined for the execution semantics)
+This formulation as a predicate in fact corresponds to a certain "prune" function (that will be defined for the third "execution semantics")
 which can statically compute a uniquely defined "pruned" interaction.
 The existence of this "prune" function is congruent to having the "is_prune_of" predicate satisfying properties of existence and unicity.
 **)
@@ -1905,14 +1734,26 @@ dependent induction i.
     assumption.
 Qed.
 
+Lemma loops_always_prunable (lk:ScheduleKind) (i:Interaction) (l:L) :
+  (exists i0' : Interaction, 
+     is_prune_of (interaction_loop lk i) l i0'
+  ).
+Proof.
+pose proof (avoids_decidability i l).
+destruct H.
+- assert (H1:=H). 
+  apply (avoids_implies_prunable i l) in H.
+  destruct H as (i',H).
+  exists (interaction_loop lk i').
+  apply prune_loop_select ; assumption.
+- exists interaction_empty.
+  apply prune_loop_elim ; assumption.
+Qed.
+
 (**
 **** Properties of pruning w.r.t. the denotational semantics
 
 In the following, I will state some properties of pruning w.r.t. the denotational semantics "sem_de".
-
-Let us remark that if an interaction can express the empty trace, then it means it can be pruned w.r.t. any lifeline. 
-This is formalized as the "de_accept_nil_implies_prunable" Lemma which proof is immediately inferred from previous Lemmas
-"de_accept_nil_implies_prunable" and "avoids_implies_prunable".
 **)
 
 Lemma de_accept_nil_implies_prunable (i:Interaction) (l:L) :
@@ -1924,12 +1765,6 @@ apply (de_accept_nil_implies_avoids i l) in H.
 apply avoids_implies_prunable.
 assumption.
 Qed.
-
-(** 
-Let us also remark that this can be generalized for the acceptation of any trace that has no conflict with the lifeline.
-This is formalized as the "de_accept_t_and_no_conflict_implies_prunable" Lemma which proof is immediately inferred from previous Lemmas
-"de_accept_t_and_no_conflict_implies_avoids" and "avoids_implies_prunable".
-**)
 
 Lemma de_accept_t_and_no_conflict_implies_prunable
   (i: Interaction) (a:Action) (t:Trace) :
@@ -2423,12 +2258,13 @@ Inductive is_next_of : Interaction -> Action -> Interaction -> Prop :=
                                        a
                                        (interaction_strict i1' (interaction_loop lstrict i1))
                                 )
-|execute_loop_seq    : forall (a:Action) (i1 i1' : Interaction),
-                          (is_next_of i1 a i1') 
+|execute_loop_seq    : forall (a:Action) (i1 i1' i0': Interaction),
+                          (is_next_of i1 a i1')
+                          -> (is_prune_of (interaction_loop lseq i1) (lifeline a) i0')
                              -> (is_next_of 
                                        (interaction_loop lseq i1)
                                        a
-                                       (interaction_seq i1' (interaction_loop lseq i1))
+                                       (interaction_seq i0' (interaction_seq i1' (interaction_loop lseq i1)))
                                 )
 |execute_loop_par    : forall (a:Action) (i1 i1' : Interaction),
                           (is_next_of i1 a i1') 
@@ -2550,23 +2386,61 @@ dependent induction H1 generalizing t.
     * intro. discriminate.
     * assumption.
 - simpl in H2.
-  destruct H2 as (t1,H).
-  destruct H as (t2,H).
-  destruct H as (Hi1,H).
-  destruct H as (H,Hconc).
-  destruct H as (subs,H).
-  destruct H as (Hin,Hrep).
-  simpl.
-  exists ((a::t1)::subs).
-  split.
-  + intros t0 Ht0.
-    inversion Ht0.
-    * destruct H. apply IHis_next_of. assumption.
-    * apply Hin. assumption.
-  + apply (merge_seq subs (a::t1) t2 (a::t)).
-    * intro. discriminate.
-    * assumption.
-    * apply weak_seq_cons_left. assumption.
+  destruct H2 as (t0,H3).
+  destruct H3 as (tm,H3).
+  destruct H3 as (Hi0,H3).
+  destruct H3 as (H3,Hmer).
+  destruct H3 as (t1,H3).
+  destruct H3 as (t2,H3).
+  destruct H3 as (Hi1,H3).
+  destruct H3 as (H3,Hmer2).
+  destruct H3 as (subs,H3).
+  destruct H3 as (Hin,Hrep).
+  inversion H.
+  { symmetry in H0. destruct H0.
+    symmetry in H2. destruct H2.
+    symmetry in H4. destruct H4.
+    destruct H5.
+    simpl in Hi0.
+    destruct Hi0 as (sub0,Hi0).
+    destruct Hi0 as (H0A,H0B).
+    simpl.
+    exists (sub0 ++ (a::t1)::subs).
+    split.
+    - intros t3 Ht3.
+      apply in_app_or in Ht3.
+      destruct Ht3.
+      + apply H0A in H0.
+        apply (prune_kept_de i1 i1'0 (lifeline a) t3).
+        split ; assumption.
+      + simpl in H0. destruct H0.
+        * destruct H0. apply IHis_next_of. assumption.
+        * apply Hin. assumption.
+    - apply n_merge_seq_reorder_prop1.
+      + apply (n_merge_lseq_sandwich sub0 subs t0 t1 t2 tm) ; assumption.
+      + intros. apply (prune_removes_conflicts i1 i1'0).
+        * assumption.
+        * apply H0A. assumption.
+  }
+  { destruct H4.
+    symmetry in H0. destruct H0.
+    symmetry in H3. destruct H3.
+    symmetry in H2. destruct H2.
+    inversion Hi0. symmetry in H0. destruct H0.
+    apply is_weak_seq_nil_prop2 in Hmer. 
+    symmetry in Hmer. destruct Hmer.
+    simpl.
+    exists ((a::t1)::subs).
+    split.
+    - intros. simpl in H0. destruct H0.
+      + destruct H0. apply IHis_next_of.
+        assumption.
+      + apply Hin. assumption.
+    - apply (merge_seq subs (a::t1) t2 (a::t)).
+      + intro. discriminate.
+      + assumption.
+      + apply weak_seq_cons_left. assumption.
+  }
 - simpl in H2.
   destruct H2 as (t1,H).
   destruct H as (t2,H).
@@ -2651,146 +2525,6 @@ The proof in that other direction is explained in the next section.
 **)
 
 
-
-(**
-** Proof of the inclusion of "sem_de" into "sem_op"
-
-*** Hypotheses de tri
-
-The rest of the proof relies on some hypotheses on the fact that,
-when computing the denotational semantics "sem_de" for loops
-i.e. for interactions which root node is a loop operator,
-the traces issued from each iteration of the sub-behavior are sorted
-by order of occurence in the "subs" list of traces that is used for the merger.
-
-Let us indeed recall the definition of "sem_de":
-
-<<
-Fixpoint sem_de (i : Interaction) : (Trace -> Prop) :=
-match i with
-|interaction_empty          => fun t:Trace => 
-                                  t = nil
-|(interaction_act a)        => fun t:Trace => 
-                                  t = a :: nil
-|(interaction_alt i1 i2)    => fun t:Trace => 
-                                  (sem_de i1 t) \/ (sem_de i2 t)
-|(interaction_par i1 i2)    => fun t:Trace => 
-                                  exists (t1 t2:Trace), 
-                                    (sem_de i1 t1) /\ (sem_de i2 t2) /\ (is_interleaving t1 t2 t)
-|(interaction_strict i1 i2) => fun t:Trace => 
-                                  exists (t1 t2:Trace), 
-                                    (sem_de i1 t1) /\ (sem_de i2 t2) /\ (t = t1 ++ t2)
-|(interaction_seq i1 i2)    => fun t:Trace => 
-                                  exists (t1 t2:Trace), 
-                                    (sem_de i1 t1) /\ (sem_de i2 t2) /\ (is_weak_seq t1 t2 t)
-|(interaction_loop lk i1)   => fun t:Trace => 
-                                  exists (subs:list Trace),
-                                    (forall (t0:Trace), (In t0 subs) -> (sem_de i1 t0) )
-                                    /\ (n_merge_schedule lk subs t)
->>
-
-We can see that, for defining the semantics of loops, we use a certain list of traces "subs".
-This list of (potentially disctinct) traces enumerates the successive iterations of the behaviors
-of the sub(interaction "i1".
-A trace is then accepted by the interaction if it is a merger of those traces.
-
-However, as per the definition of the weak sequencing and interleaving operators on traces, nothing prevents
-those traces to be put in any order within "subs".
-
-The formal proof on Coq relies on a good faith hypothesis that the traces are inserted in "subs"
-during the construction of the denotational semantics
-in the same order as that of the instanciations of the sub-interactions i1' that are
-operated by the operational semantics.
-**)
-
-Lemma n_merge_schedule_cons_strict_prop (subs:list Trace) (t:Trace) (a:Action):
-  (n_merge_schedule lstrict subs (a :: t))
-  -> ( exists (t0:Trace) (remain:list Trace),
-        subs = (a::t0)::remain
-     ).
-Proof.
-intros.
-dependent induction subs.
-- inversion H.
-- inversion H. destruct H0.
-  destruct H1. 
-  symmetry in H2.
-  apply (cons_eq_app Action) in H2.
-  destruct H2.
-  + destruct H0.
-    symmetry in H0. destruct H0.
-    contradiction. 
-  + destruct H0 as (t1,H0).
-    exists t1. exists remain.
-    rewrite <- H0. reflexivity.
-Qed.
-
-Lemma hypothese_de_tri_strict 
-  (t0 t t_merge_remain:Trace) (remain:list Trace) (a:Action) :
-(n_merge_schedule lstrict ((a :: t0) :: remain) (a :: t))
--> (n_merge_schedule lstrict remain t_merge_remain)
--> (t = t0 ++ t_merge_remain).
-Proof.
-Admitted.
-
-Lemma n_merge_schedule_cons_seq_prop (subs:list Trace) (t:Trace) (a:Action):
-  (n_merge_schedule lseq subs (a :: t))
-  -> ( exists (n:nat) (t0:Trace),
-       (n<length subs) 
-       /\ ( (a::t0) = (nth n subs nil) )
-       /\ ( 
-            ( 
-                 (t0<>nil) 
-                 /\ (n_merge_schedule lseq (subs_replace n subs t0) t)
-            )
-            \/ ( (t0=nil)
-                 /\ (n_merge_schedule lseq (subs_remove n subs) t)
-               )
-          )
-     ).
-Proof.
-Admitted.
-
-Lemma hypothese_de_tri_weak_seq 
- (t0 t:Trace) (subs:list Trace) (n:nat) :
-  (n < length subs)
-  -> (n_merge_schedule lseq (subs_replace n subs t0) t)
-  -> (exists t':Trace,
-          (n_merge_schedule lseq (subs_remove n subs) t')
-          /\ (is_weak_seq t0 t' t)
-     ).
-Proof.
-Admitted.
-
-Lemma n_merge_schedule_cons_par_prop (subs:list Trace) (t:Trace) (a:Action):
-  (n_merge_schedule lpar subs (a :: t))
-  -> ( exists (n:nat) (t0:Trace),
-       (n<length subs) 
-       /\ ( (a::t0) = (nth n subs nil) )
-       /\ ( 
-            ( 
-                 (t0<>nil) 
-                 /\ (n_merge_schedule lpar (subs_replace n subs t0) t)
-            )
-            \/ ( (t0=nil)
-                 /\ (n_merge_schedule lpar (subs_remove n subs) t)
-               )
-          )
-     ).
-Proof.
-Admitted.
-
-Lemma hypothese_de_tri_interleaving 
- (t0 t:Trace) (subs:list Trace) (n:nat) :
-  (n < length subs)
-  -> (n_merge_schedule lpar (subs_replace n subs t0) t)
-  -> (exists t':Trace,
-          (n_merge_schedule lpar (subs_remove n subs) t')
-          /\ (is_interleaving t0 t' t)
-     ).
-Proof.
-Admitted. 
-
 (**
 
 *** Existence of a next interaction
@@ -2824,6 +2558,126 @@ the unicity of the "i'" that can satisfy "(is_next_of i a i')".
 Indeed, given that we do not uniquely identify the executions of actions via their positions
 in the syntactic term "i", and because there can be several occurences of a leaf term "a"
 in the tree-structure of "i", there can be several such "i'".
+
+**** Preliminaries
+**)
+
+
+Lemma n_merge_schedule_cons_strict_prop (subs:list Trace) (t:Trace) (a:Action):
+  (n_merge_schedule lstrict subs (a :: t))
+  -> ( exists (t0:Trace) (remain:list Trace),
+        subs = (a::t0)::remain
+     ).
+Proof.
+intros.
+dependent induction subs.
+- inversion H.
+- inversion H. destruct H0.
+  destruct H1. 
+  symmetry in H2.
+  apply (cons_eq_app Action) in H2.
+  destruct H2.
+  + destruct H0.
+    symmetry in H0. destruct H0.
+    contradiction. 
+  + destruct H0 as (t1,H0).
+    exists t1. exists remain.
+    rewrite <- H0. reflexivity.
+Qed.
+
+
+Lemma n_merge_strict_unicity
+  (subs:list Trace) (t1 t2:Trace) :
+    ( 
+      (n_merge_schedule lstrict subs t1)
+      /\(n_merge_schedule lstrict subs t2)
+    )->(t1=t2).  
+Proof.
+dependent induction subs.
+- intros. destruct H.
+  apply n_merge_schedule_nil_prop2 in H.
+  apply n_merge_schedule_nil_prop2 in H0.
+  symmetry in H. destruct H.
+  symmetry. assumption.
+- intros. destruct H.
+  inversion H. destruct H1. destruct H2.
+  destruct H5.
+  inversion H0. destruct H1. destruct H2.
+  destruct H7.
+  assert (t_rep=t_rep0).
+  { apply IHsubs. split ; assumption. }
+  destruct H1. reflexivity.
+Qed.
+
+Lemma n_merge_strict_strict_operational_characterization
+  (t0 t t_merge_remain:Trace) (remain:list Trace) (a:Action) :
+(n_merge_schedule lstrict ((a :: t0) :: remain) (a :: t))
+-> (n_merge_schedule lstrict remain t_merge_remain)
+-> (t = t0 ++ t_merge_remain).
+Proof.
+intros.
+dependent induction remain generalizing t t_merge_remain t0.
+- apply n_merge_schedule_nil_prop2 in H0.
+  symmetry in H0. destruct H0.
+  inversion H.
+  apply n_merge_schedule_nil_prop2 in H4.
+  rewrite H4. reflexivity.
+- inversion H.
+  destruct H3. 
+  symmetry in H2. destruct H2.
+  assert (t_rep=t_merge_remain).
+  { apply (n_merge_strict_unicity (a::remain)).
+    split ; assumption.
+  } 
+  destruct H2. reflexivity.
+Qed.
+
+
+Lemma n_merge_schedule_cons_seq_prop (subs:list Trace) (t:Trace) (a:Action):
+  (n_merge_schedule lseq subs (a :: t))
+  -> (  
+        exists (sub1 sub3:list Trace) (t2:Trace),
+         (forall t1:Trace, (In t1 sub1) -> (no_conflict t1 a)) /\
+         (subs = sub1 ++ (a::t2)::sub3) /\
+         (
+            ( (t2 <> nil) /\ (n_merge_schedule lseq (sub1 ++ (t2::sub3)) t) )
+            \/ ( (t2 = nil) /\ (n_merge_schedule lseq (sub1 ++ sub3) t) )
+         )
+     ).
+Proof.
+Admitted.
+
+Lemma n_merge_schedule_cons_par_prop (subs:list Trace) (t:Trace) (a:Action):
+  (n_merge_schedule lpar subs (a::t))
+  -> (exists (subs':list Trace) (t0:Trace),
+        (forall tx:Trace, (In tx ( (a::t0)::subs') ) <-> (In tx subs))
+        /\ (n_merge_schedule lpar (t0::subs') t)
+     ).
+Proof.
+Admitted.
+
+Lemma n_merge_schedule_par_dichotomy (sub1 sub2 : list Trace) (t: Trace) :
+  (n_merge_schedule lpar (sub1 ++ sub2) t)
+  -> (exists (t1 t2:Trace),
+       (n_merge_schedule lpar sub1 t1)
+       /\ (n_merge_schedule lpar sub2 t2)
+       /\ (is_interleaving t1 t2 t)
+     ).
+Proof.
+Admitted.
+
+Lemma n_merge_schedule_seq_dichotomy (sub1 sub2 : list Trace) (t: Trace) :
+  (n_merge_schedule lseq (sub1 ++ sub2) t)
+  -> (exists (t1 t2:Trace),
+       (n_merge_schedule lseq sub1 t1)
+       /\ (n_merge_schedule lseq sub2 t2)
+       /\ (is_weak_seq t1 t2 t)
+     ).
+Proof.
+Admitted.
+
+(**
+**** Proof
 **)
 
 Lemma de_accept_cons_implies_execution_possible 
@@ -3085,113 +2939,165 @@ dependent induction i.
             split.
             * intros. apply Hin. simpl. right. assumption. 
             * assumption.
-          + apply (hypothese_de_tri_strict t0 t t_merge_remain remain a) ; assumption. 
+          + apply (n_merge_strict_strict_operational_characterization t0 t t_merge_remain remain a) ; assumption. 
       }
     }
   + assert (Hr:=Hrep).
     apply (n_merge_schedule_cons_seq_prop subs t a) in Hrep.
-    destruct Hrep as (n,H). destruct H as (t0,H).
-    destruct H. destruct H0. destruct H1.
+    destruct Hrep as (sub1,Hrep).
+    destruct Hrep as (sub3,Hrep).
+    destruct Hrep as (t2,Hrep).
+    destruct Hrep. destruct H0.
+    destruct H1.
     { destruct H1.
-      assert (In (a::t0) subs).
-      { rewrite H0. apply nth_In. assumption. }
+      assert (In (a::t2) subs).
+      { rewrite H0. apply in_or_app. right. simpl. left. reflexivity. }
       apply Hin in H3.
       apply IHi in H3.
       destruct H3 as (i',Hi').
       destruct Hi' as (Hnext,Hi').
-      exists (interaction_seq i' (interaction_loop lseq i)).
+      pose proof (loops_always_prunable lseq i (lifeline a)).
+      destruct H3 as (i0',H3).
+      exists (interaction_seq i0' (interaction_seq i' (interaction_loop lseq i))).
       split.
-      { apply execute_loop_seq. assumption. }
-      { simpl. exists t0. 
-        assert (exists t' : Trace, n_merge_schedule lseq (subs_remove n subs) t' 
-                                   /\ is_weak_seq t0 t' t).
-        { apply (hypothese_de_tri_weak_seq t0 t subs n) ; assumption. }
-        destruct H3 as (t2,H3). destruct H3.
-        exists t2.
+      { apply execute_loop_seq ; assumption. }
+      { apply n_merge_schedule_seq_dichotomy in H2.
+        destruct H2 as (t1,H2).
+        destruct H2 as (t3,H2).
+        destruct H2.
+        destruct H4. 
+        simpl. exists t1. exists t3.
         split.
-        - assumption.
-        - split.
-          + exists (subs_remove n subs).
+        - inversion H3.
+          + destruct H10.
+            symmetry in H9. destruct H9. symmetry in H7. destruct H7.
+            symmetry in H6. destruct H6. simpl. exists sub1.
             split.
-            * intros. apply subs_remove_keep_in in H5. apply Hin. assumption.
+            * intros. 
+              apply (de_accept_t_and_no_conflict_implies_pruned_de_accept_t i i1' a t0).
+              { apply H. assumption. }
+              { apply Hin. rewrite H0. apply in_or_app. left. assumption. }
+              { assumption. }
             * assumption.
+          + destruct H9. 
+            symmetry in H7. destruct H7.
+            symmetry in H6. destruct H6. symmetry in H8. destruct H8.
+            simpl. inversion H2.
+            * reflexivity.
+            * destruct H11. destruct H12. assert (no_conflict t_first a).
+              { apply H. simpl. left. reflexivity. }
+              assert (avoids i (lifeline a)).
+              { apply (de_accept_t_and_no_conflict_implies_avoids i a t_first).
+                - apply Hin. rewrite H0. apply in_or_app. left. simpl. left. reflexivity.
+                - assumption.
+              }
+              contradiction.
+        - split.
+          + exists t2.
+            assert (exists t1 t4 : Trace,
+       n_merge_schedule lseq (t2 :: nil) t1 /\
+       n_merge_schedule lseq sub3 t4 /\ is_weak_seq t1 t4 t3).
+            { apply (n_merge_schedule_seq_dichotomy (t2::nil) sub3 t3).
+              simpl. assumption. }
+            destruct H6. destruct H6 as (tX,H6). destruct H6. destruct H7.
+            apply (n_merge_schedule_single_merge lseq) in H6. destruct H6.
+            { exists tX. split.
+              - assumption.
+              - split.
+                + exists sub3. split.
+                  * intros. apply Hin. rewrite H0. apply in_or_app.
+                    right. simpl. right. assumption.
+                  * assumption.
+                + assumption.
+            }
           + assumption.
       }
     }
-    { destruct H1. symmetry in H1. destruct H1.
+    { destruct H1.
+      symmetry in H1. destruct H1.
       assert (In (a::nil) subs).
-      { rewrite H0. apply nth_In. assumption. }
+      { rewrite H0. apply in_or_app. right. simpl. left. reflexivity. }
       apply Hin in H1.
       apply IHi in H1.
       destruct H1 as (i',Hi').
       destruct Hi' as (Hnext,Hi').
-      exists (interaction_seq i' (interaction_loop lseq i)).
+      pose proof (loops_always_prunable lseq i (lifeline a)).
+      destruct H1 as (i0',H1).
+      exists (interaction_seq i0' (interaction_seq i' (interaction_loop lseq i))).
       split.
-      { apply execute_loop_seq. assumption. }
-      { simpl. exists nil. exists t.
+      { apply execute_loop_seq ; assumption. }
+      { apply n_merge_schedule_seq_dichotomy in H2.
+        destruct H2 as (t1,H2).
+        destruct H2 as (t3,H2).
+        destruct H2.
+        destruct H3. 
+        simpl. exists t1. exists t3.
         split.
-        - assumption.
-        - split.
-          + exists (subs_remove n subs).
+        - inversion H1.
+          + destruct H9.
+            symmetry in H5. destruct H5. symmetry in H6. destruct H6.
+            symmetry in H8. destruct H8. simpl. exists sub1.
             split.
-            * intros. apply Hin. apply subs_remove_keep_in in H1. assumption.
+            * intros. 
+              apply (de_accept_t_and_no_conflict_implies_pruned_de_accept_t i i1' a t0).
+              { apply H. assumption. }
+              { apply Hin. rewrite H0. apply in_or_app. left. assumption. }
+              { assumption. }
             * assumption.
-          + apply weak_seq_nil_left.
+          + destruct H8. 
+            symmetry in H5. destruct H5.
+            symmetry in H6. destruct H6. symmetry in H7. destruct H7.
+            simpl. inversion H2.
+            * reflexivity.
+            * destruct H10. destruct H11. assert (no_conflict t_first a).
+              { apply H. simpl. left. reflexivity. }
+              assert (avoids i (lifeline a)).
+              { apply (de_accept_t_and_no_conflict_implies_avoids i a t_first).
+                - apply Hin. rewrite H0. apply in_or_app. left. simpl. left. reflexivity.
+                - assumption.
+              }
+              contradiction.
+        - split.
+          + exists nil. exists t3.
+            split.
+            * assumption.
+            * split.
+              { exists sub3. split.  
+                - intros. apply Hin. rewrite H0. apply in_or_app. right. simpl. right. assumption.
+                - assumption. }
+              { apply weak_seq_nil_left. }
+          + assumption. 
       }
     }
   + assert (Hr:=Hrep).
     apply (n_merge_schedule_cons_par_prop subs t a) in Hrep.
-    destruct Hrep as (n,H). destruct H as (t0,H).
-    destruct H. destruct H0. destruct H1.
-    { destruct H1.
-      assert (In (a::t0) subs).
-      { rewrite H0. apply nth_In. assumption. }
-      apply Hin in H3.
-      apply IHi in H3.
-      destruct H3 as (i',Hi').
-      destruct Hi' as (Hnext,Hi').
-      exists (interaction_par i' (interaction_loop lpar i)).
+    destruct Hrep as (subs',H). destruct H as (t0,H).
+    destruct H. assert (In (a::t0) subs).
+    { apply H. simpl. left. reflexivity. }
+    apply Hin in H1. apply IHi in H1.
+    destruct H1 as (i',H1). destruct H1.
+    exists (interaction_par i' (interaction_loop lpar i)).
+    split.
+    * apply execute_loop_par. assumption.
+    * simpl. exists t0. 
+      assert (exists t1 t2 : Trace,
+       n_merge_schedule lpar (t0 :: nil) t1 /\
+       n_merge_schedule lpar subs' t2 /\ is_interleaving t1 t2 t).
+      { apply (n_merge_schedule_par_dichotomy (t0::nil) subs' t). simpl. assumption. }
+      destruct H3. destruct H3 as (t2,H3).
+      destruct H3. destruct H4.
+      apply (n_merge_schedule_single_merge lpar) in H3. destruct H3.
+      exists t2.
       split.
-      { apply execute_loop_par. assumption. }
-      { simpl. exists t0. 
-        assert (exists t' : Trace, n_merge_schedule lpar (subs_remove n subs) t' 
-                                   /\ is_interleaving t0 t' t).
-        { apply (hypothese_de_tri_interleaving t0 t subs n) ; assumption. }
-        destruct H3 as (t2,H3). destruct H3.
-        exists t2.
-        split.
+      { assumption. }
+      { split.
+        - exists subs'. split.
+          + intros. apply Hin.
+            apply H. simpl. right. assumption.
+          + assumption.
         - assumption.
-        - split.
-          + exists (subs_remove n subs).
-            split.
-            * intros. apply subs_remove_keep_in in H5. apply Hin. assumption.
-            * assumption.
-          +  assumption.
       }
-    }
-    { destruct H1. symmetry in H1. destruct H1.
-      assert (In (a::nil) subs).
-      { rewrite H0. apply nth_In. assumption. }
-      apply Hin in H1.
-      apply IHi in H1.
-      destruct H1 as (i',Hi').
-      destruct Hi' as (Hnext,Hi').
-      exists (interaction_par i' (interaction_loop lpar i)).
-      split.
-      { apply execute_loop_par. assumption. }
-      { simpl. exists nil. exists t.
-        split.
-        - assumption.
-        - split.
-          + exists (subs_remove n subs).
-            split.
-            * intros. apply Hin. apply subs_remove_keep_in in H1. assumption.
-            * assumption.
-          + apply interleaving_nil_left.
-      }
-    }
-Qed.  
-
+Qed.
 
 (**
 We can finally prove the inclusion of "sem_de" into "sem_op".
@@ -3199,6 +3105,7 @@ We can finally prove the inclusion of "sem_de" into "sem_op".
 
 Theorem de_implies_op (i : Interaction) (t : Trace) :
   (sem_de i t) -> (sem_op i t).
+Proof.
 intros H.
 dependent induction t generalizing i. 
 - apply sem_op_empty.
@@ -3802,7 +3709,8 @@ Fixpoint execute (i : Interaction)
         | (left p1) => match i with
                   | (interaction_loop lk i1) => match lk with
                                       | lstrict => interaction_strict (execute i1 p1 l) i
-                                      | lseq => interaction_seq (execute i1 p1 l) i
+                                      | lseq => interaction_seq (prune i l)
+                                                                (interaction_seq (execute i1 p1 l) i)
                                       | lpar => interaction_par (execute i1 p1 l) i
                                     end
                   | (interaction_alt i1 i2)    => execute i1 p1 l
@@ -3926,14 +3834,32 @@ dependent induction i.
     simpl. split.
     * apply front_loop. assumption.
     * destruct H1. reflexivity.
-  + destruct H0. destruct H2. symmetry in H1. destruct H1.
-    apply IHi in H4.
-    destruct H4 as (p1,H4).
-    destruct H4.
+  + destruct H0. symmetry in H1. destruct H1.
+    symmetry in H3. destruct H3.
+    apply IHi in H2.
+    destruct H2 as (p1,H2).
+    destruct H2.
     exists (left p1).
     simpl. split.
     * apply front_loop. assumption.
-    * destruct H1. reflexivity.
+    * destruct H1. inversion H5.
+      { symmetry in H1. destruct H1.
+        symmetry in H2. destruct H2.
+        symmetry in H6. destruct H6.
+        destruct H7.
+        apply avoids_eq in H3. 
+        symmetry in H3. destruct H3.
+        apply prune_implication_1 in H8.
+        destruct H8. reflexivity.
+      } 
+      { symmetry in H1. destruct H1.
+        symmetry in H3. destruct H3.
+        symmetry in H2. destruct H2.
+        destruct H6.
+        apply avoids_neq in H7. 
+        symmetry in H7. destruct H7.
+        reflexivity.
+      }
   + destruct H0. destruct H2. symmetry in H1. destruct H1.
     apply IHi in H4.
     destruct H4 as (p1,H4).
@@ -3985,8 +3911,23 @@ dependent induction i.
   destruct sk.
   + apply IHi in H4.
     apply execute_loop_strict. assumption.
-  + apply IHi in H4.
-    apply execute_loop_seq. assumption.
+  + apply IHi in H4. simpl.
+    pose proof (avoids_decidability i (lifeline a)).
+    destruct H0.
+    { apply execute_loop_seq.
+      - assumption.
+      - assert (Ha:=H0). apply avoids_eq in H0. symmetry in H0. destruct H0.
+        apply prune_loop_select.
+        * assumption.
+        * apply prune_implication_2.
+          assumption. reflexivity.
+    }
+    { apply execute_loop_seq.
+      - assumption.
+      - assert (Ha:=H0). apply avoids_neq in H0. symmetry in H0. destruct H0.
+        apply prune_loop_elim.
+        assumption.
+    }
   + apply IHi in H4.
     apply execute_loop_par. assumption.
 Qed.
